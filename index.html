@@ -147,8 +147,10 @@
   @media(max-width:600px){
     .nav-inner{padding:14px 16px;}
     .logo{font-size:17px;}
-    .header-right a.pill:not(.pill-solid){display:none;}
+    .header-right a.pill:not(.pill-solid):not(.staff-link){display:none;}
     .header-right .pill{padding:9px 14px; font-size:11px;}
+    .header-right .staff-link{width:40px;height:40px;padding:0;border-radius:50%;justify-content:center;gap:0;}
+    .header-right .staff-link .staff-label{display:none;}
   }
 
   @media(max-width:900px){
@@ -216,9 +218,9 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s7-7.5 7-13a7 7 0 10-14 0c0 5.5 7 13 7 13z"/><circle cx="12" cy="9" r="2.5"/></svg>
         Ubicación
       </a>
-      <a class="pill" href="https://greenfitadmin.netlify.app/login" target="_blank" rel="noopener" aria-label="Acceso Staff - Panel de Control">
+      <a class="pill staff-link" href="https://greenfitadmin.netlify.app/login" target="_blank" rel="noopener" aria-label="Acceso Staff - Panel de Control">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
-        Acceso Staff
+        <span class="staff-label">Acceso Staff</span>
       </a>
     </div>
   </div>
