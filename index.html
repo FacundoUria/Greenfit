@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GREENFIT — Tu box. Tu ritmo. Tu mejor versión.</title>
+<link rel="icon" type="image/jpeg" href="img/favicon.jpg">
+<title>GreenFit — Tu Box de Entrenamiento</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Work+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap');
 
@@ -33,9 +34,9 @@
   nav ul{list-style:none;display:flex;gap:34px;}
   nav a{color:rgba(255,255,255,0.85);text-decoration:none;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px; display:flex; align-items:center; gap:4px;}
   nav a:hover{color:var(--lime);}
-  .header-right{display:flex; align-items:center; gap:12px;}
+  .header-right{display:flex; align-items:center; gap:12px; flex-shrink:0;}
   .pill{
-    display:inline-flex; align-items:center; gap:8px; padding:11px 20px; border-radius:999px;
+    display:inline-flex; align-items:center; gap:8px; padding:11px 20px; border-radius:999px; white-space:nowrap; flex-shrink:0;
     font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:0.3px; text-decoration:none; border:1.5px solid rgba(255,255,255,0.4); color:var(--white);
   }
   .pill:hover{border-color:var(--lime); color:var(--lime);}
@@ -208,11 +209,17 @@
       <a class="icon-btn" href="https://www.instagram.com/green_fitargentina/" target="_blank" rel="noopener" aria-label="Instagram GreenFit">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.9" fill="currentColor" stroke="none"/></svg>
       </a>
+      <a class="icon-btn" href="https://wa.me/5492617139662" target="_blank" rel="noopener" aria-label="WhatsApp GreenFit">
+        <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.48 1.32 5.01L2 22l5.25-1.38c1.47.81 3.13 1.24 4.79 1.24h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.91-7.01A9.816 9.816 0 0012.04 2zm5.87 14.03c-.25.7-1.45 1.34-2 1.43-.51.08-1.15.11-1.86-.12-.43-.14-.98-.32-1.69-.63-2.98-1.29-4.93-4.29-5.08-4.49-.15-.2-1.22-1.62-1.22-3.09 0-1.47.77-2.19 1.05-2.49.27-.3.6-.37.8-.37.2 0 .4 0 .57.01.18.01.43-.07.67.51.25.6.85 2.07.92 2.22.07.15.12.33.02.53-.09.2-.14.32-.28.49-.14.17-.3.38-.42.51-.14.15-.29.31-.12.6.17.3.76 1.25 1.63 2.02 1.12 1 2.06 1.31 2.36 1.46.3.15.48.13.65-.08.18-.2.75-.87.95-1.17.2-.3.4-.25.68-.15.28.1 1.77.84 2.08 1 .3.15.51.23.58.36.08.13.08.75-.17 1.45z"/></svg>
+      </a>
       <a class="pill" href="#contacto">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s7-7.5 7-13a7 7 0 10-14 0c0 5.5 7 13 7 13z"/><circle cx="12" cy="9" r="2.5"/></svg>
         Ubicación
       </a>
-      <a class="pill pill-solid" href="https://wa.me/5492617139662" target="_blank" rel="noopener">Escribinos</a>
+      <a class="pill" href="https://greenfitadmin.netlify.app/login" target="_blank" rel="noopener" aria-label="Acceso Staff - Panel de Control">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+        Acceso Staff
+      </a>
     </div>
   </div>
 </header>
@@ -477,6 +484,7 @@
       <a href="#clases">Horarios</a>
       <a href="#galeria">Galería</a>
       <a href="#contacto">Ubicación</a>
+      <a href="https://greenfitadmin.netlify.app/login" target="_blank" rel="noopener">Panel de Administración</a>
     </div>
     <div class="footer-col footer-cta">
       <h4>Vení a entrenar hoy</h4>
