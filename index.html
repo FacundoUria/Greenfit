@@ -40,7 +40,9 @@
     font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:0.3px; text-decoration:none; border:1.5px solid rgba(255,255,255,0.4); color:var(--white);
   }
   .pill:hover{border-color:var(--lime); color:var(--lime);}
+  .pill svg{width:16px;height:16px;flex-shrink:0;}
   .pill-solid{background:var(--lime); color:var(--black); border-color:var(--lime);}
+  .app-label-short{display:none;}
   .pill-solid:hover{background:#7bcf14; color:var(--black);}
   .icon-btn{
     width:40px;height:40px;border-radius:50%; display:flex; align-items:center; justify-content:center;
@@ -144,13 +146,30 @@
   .car-prev{left:6px;}
   .car-next{right:6px;}
 
-  @media(max-width:600px){
+  @media(max-width:900px){
     .nav-inner{padding:14px 16px;}
     .logo{font-size:17px;}
+    .header-right{gap:8px;}
     .header-right a.pill:not(.pill-solid):not(.staff-link){display:none;}
     .header-right .pill{padding:9px 14px; font-size:11px;}
-    .header-right .staff-link{width:40px;height:40px;padding:0;border-radius:50%;justify-content:center;gap:0;}
+    .header-right .pill-solid{padding:9px 12px; gap:6px;}
+    .header-right .staff-link{width:38px;height:38px;padding:0;border-radius:50%;justify-content:center;gap:0;}
     .header-right .staff-link .staff-label{display:none;}
+  }
+
+  @media(max-width:400px){
+    .logo{font-size:14px;}
+    .header-right{gap:5px;}
+    .icon-btn{width:32px;height:32px;}
+    .icon-btn svg{width:15px;height:15px;}
+    .header-right .pill-solid{padding:7px 9px; font-size:9px; gap:5px;}
+    .header-right .pill svg{width:13px;height:13px;}
+    .header-right .staff-link{width:32px;height:32px;}
+  }
+
+  @media(max-width:340px){
+    .header-right .app-label-full{display:none;}
+    .header-right .app-label-short{display:inline;}
   }
 
   @media(max-width:900px){
@@ -217,6 +236,11 @@
       <a class="pill" href="#contacto">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s7-7.5 7-13a7 7 0 10-14 0c0 5.5 7 13 7 13z"/><circle cx="12" cy="9" r="2.5"/></svg>
         Ubicación
+      </a>
+      <a class="pill pill-solid" href="https://greenfitapp.netlify.app" target="_blank" rel="noopener noreferrer" aria-label="Abrir app de alumnos GreenFit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        <span class="app-label-full">App Alumnos</span>
+        <span class="app-label-short">App</span>
       </a>
       <a class="pill staff-link" href="https://greenfitadmin.netlify.app/login" target="_blank" rel="noopener" aria-label="Acceso Staff - Panel de Control">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
