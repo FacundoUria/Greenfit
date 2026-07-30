@@ -72,13 +72,21 @@
   .icon-btn:active{transform:translateY(0) scale(0.94);}
 
   /* --- hero --- */
-  /* Foto limpia, sin capas de fundido encima -- la transición de color hacia
-     la sección de abajo se resuelve del lado de esa sección (background
-     fading puro entre bloques de color, nunca tapando la imagen). */
+  /* La foto se va oscureciendo sola hacia abajo hasta terminar en el mismo
+     negro exacto de "Todo bajo un mismo techo" (var(--black), no un
+     #000000 suelto) -- así el borde inferior deja de ser un corte recto y
+     pasa a ser la propia imagen disolviéndose en la sección siguiente. Capa
+     a pantalla completa (no una franja finita), para que la transición sea
+     gradual y no se note como un parche pegado. */
   .hero{
     position:relative; overflow:hidden; min-height:88vh; display:flex; align-items:center;
-    background:linear-gradient(90deg, rgba(11,12,8,0.92) 0%, rgba(11,12,8,0.55) 45%, rgba(11,12,8,0.2) 100%), url('img/gym-03.jpg');
-    background-size:cover; background-position:center;
+    background-image:
+      linear-gradient(to bottom, transparent 70%, var(--black) 100%),
+      linear-gradient(90deg, rgba(11,12,8,0.92) 0%, rgba(11,12,8,0.55) 45%, rgba(11,12,8,0.2) 100%),
+      url('img/gym-03.jpg');
+    background-size: 100% 100%, cover, cover;
+    background-position: center, center, center;
+    background-repeat: no-repeat, no-repeat, no-repeat;
   }
   .hero-inner{position:relative; z-index:1; max-width:1280px; margin:0 auto; padding:60px 24px; width:100%;}
   .hero h1{color:var(--white); font-size:clamp(40px,6vw,64px); max-width:680px;}
