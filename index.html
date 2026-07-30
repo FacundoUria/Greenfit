@@ -178,11 +178,21 @@
   .cta-bar h2{color:var(--white); font-size:clamp(20px,3vw,30px); max-width:600px;}
 
   /* --- foto full con texto centrado --- */
-  /* Foto limpia, sin capas de fundido encima (mismo criterio que .hero). */
+  /* Mismo criterio que .hero, pero acotado a una franja fija de 50px en cada
+     punta (no un % de la altura -- en una sección de 70vh eso terminaba
+     siendo una neblina enorme tapando media foto). Solo ablanda el borde
+     justo donde toca el blanco de arriba/abajo; el centro de la foto queda
+     limpio y nítido detrás del texto. */
   .photo-statement{
     position:relative; overflow:hidden; min-height:70vh; display:flex; align-items:center; justify-content:center; text-align:center;
-    background:linear-gradient(0deg, rgba(11,12,8,0.85), rgba(11,12,8,0.5)), url('img/clase-grupal.jpg');
-    background-size:cover; background-position:center;
+    background-image:
+      linear-gradient(to bottom, var(--white), transparent),
+      linear-gradient(to top, var(--white), transparent),
+      linear-gradient(0deg, rgba(11,12,8,0.85), rgba(11,12,8,0.5)),
+      url('img/clase-grupal.jpg');
+    background-position: top, bottom, center, center;
+    background-size: 100% 50px, 100% 50px, cover, cover;
+    background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
   }
   .photo-statement .inner{position:relative; z-index:1; max-width:640px; padding:24px;}
   .photo-statement .eyebrow{color:var(--white); font-size:13px; letter-spacing:1px; margin-bottom:14px;}
