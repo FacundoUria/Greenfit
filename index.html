@@ -22,6 +22,24 @@
   .display{font-family:'Archivo Black', sans-serif; text-transform:uppercase; line-height:1.05;}
   .mono{font-family:'JetBrains Mono',monospace;}
 
+  /* --- animaciones al scroll: fade-up + reveal escalonado (IntersectionObserver,
+     ver script). Liviano a propósito -- solo opacity/transform, sin JS de
+     terceros -- para no pegarle al rendimiento en mobile. Va cerca del reset,
+     arriba de todo, a propósito: es un utility genérico y así cualquier regla
+     de hover/interacción más específica de un componente (definida más abajo)
+     gana el empate de especificidad en `transform` en vez de perderlo contra
+     `.reveal.is-visible`. --- */
+  .reveal{opacity:0; transform:translateY(22px); transition:opacity 0.6s ease, transform 0.6s ease; transition-delay:calc(var(--stagger, 0) * 70ms);}
+  .reveal.is-visible{opacity:1; transform:translateY(0);}
+  @media (prefers-reduced-motion: reduce){
+    .reveal{opacity:1; transform:none; transition:none;}
+  }
+
+  /* --- resplandores de fondo (Hero / Disciplinas / CTA), decorativos y
+     estáticos -- position:absolute + blur, sin animación continua, así el
+     costo de repintado es mínimo. --- */
+  .glow{position:absolute; border-radius:50%; filter:blur(90px); pointer-events:none; z-index:0;}
+
   /* --- barra superior de anuncio, como el ticket banner de crossfit --- */
   .announce{background:var(--lime); color:var(--black); text-align:center; padding:10px 16px; font-size:13px; font-weight:700;}
   .announce a{color:var(--black); text-decoration:underline; font-weight:700; margin-left:6px;}
@@ -38,22 +56,26 @@
   .pill{
     display:inline-flex; align-items:center; gap:8px; padding:11px 20px; border-radius:999px; white-space:nowrap; flex-shrink:0;
     font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:0.3px; text-decoration:none; border:1.5px solid rgba(255,255,255,0.4); color:var(--white);
+    transition:border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
   }
   .pill:hover{border-color:var(--lime); color:var(--lime);}
+  .pill:active{transform:scale(0.96);}
   .pill svg{width:16px;height:16px;flex-shrink:0;}
   .pill-solid{background:var(--lime); color:var(--black); border-color:var(--lime);}
   .app-label-short{display:none;}
-  .pill-solid:hover{background:#7bcf14; color:var(--black);}
+  .pill-solid:hover{background:#7bcf14; color:var(--black); box-shadow:0 6px 18px -4px rgba(140,230,25,0.5);}
   .icon-btn{
     width:40px;height:40px;border-radius:50%; display:flex; align-items:center; justify-content:center;
     border:1.5px solid rgba(255,255,255,0.4); color:var(--white); flex-shrink:0;
+    transition:border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
   }
   .icon-btn svg{width:19px;height:19px;}
-  .icon-btn:hover{border-color:var(--lime); color:var(--lime);}
+  .icon-btn:hover{border-color:var(--lime); color:var(--lime); transform:translateY(-2px);}
+  .icon-btn:active{transform:translateY(0) scale(0.94);}
 
   /* --- hero --- */
-  .hero{position:relative; min-height:88vh; display:flex; align-items:center; background:linear-gradient(90deg, rgba(11,12,8,0.92) 0%, rgba(11,12,8,0.55) 45%, rgba(11,12,8,0.2) 100%), url('img/gym-03.jpg'); background-size:cover; background-position:center;}
-  .hero-inner{max-width:1280px; margin:0 auto; padding:60px 24px; width:100%;}
+  .hero{position:relative; overflow:hidden; min-height:88vh; display:flex; align-items:center; background:linear-gradient(90deg, rgba(11,12,8,0.92) 0%, rgba(11,12,8,0.55) 45%, rgba(11,12,8,0.2) 100%), url('img/gym-03.jpg'); background-size:cover; background-position:center;}
+  .hero-inner{position:relative; z-index:1; max-width:1280px; margin:0 auto; padding:60px 24px; width:100%;}
   .hero h1{color:var(--white); font-size:clamp(40px,6vw,64px); max-width:680px;}
   .hero h1 .fit{color:var(--lime);}
   .hero p{color:rgba(255,255,255,0.85); max-width:520px; margin:22px 0 30px; font-size:16px; line-height:1.6;}
@@ -75,16 +97,24 @@
   .values p{color:var(--grey-text); font-size:14px; line-height:1.6;}
 
   /* --- sección oscura split: headline + mosaico de disciplinas --- */
-  .split-dark{background:var(--black); padding:80px 24px;}
-  .split-inner{max-width:1160px; margin:0 auto; display:grid; grid-template-columns:1.1fr 0.9fr; gap:60px; align-items:center;}
+  .split-dark{position:relative; overflow:hidden; background:var(--black); padding:80px 24px;}
+  .split-inner{position:relative; z-index:1; max-width:1160px; margin:0 auto; display:grid; grid-template-columns:1.1fr 0.9fr; gap:60px; align-items:center;}
   .split-dark h2{color:var(--white); font-size:clamp(30px,4.5vw,46px); margin-bottom:20px;}
   .split-dark p{color:rgba(255,255,255,0.65); font-size:15px; line-height:1.7; margin-bottom:28px; max-width:460px;}
   /* auto-fit en vez de 2 columnas fijas -- así la grilla se acomoda sola
      (más o menos columnas según el ancho disponible) sin importar cuántas
      disciplinas activas haya cargadas en un momento dado. */
   .discipline-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:14px;}
-  .discipline-card{background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:24px; text-align:center;}
-  .discipline-card svg{width:30px;height:30px; margin-bottom:12px;}
+  .discipline-card{
+    background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:24px; text-align:center;
+    transition:transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
+  }
+  .discipline-card:hover{
+    transform:translateY(-4px); border-color:rgba(140,230,25,0.45);
+    background-color:rgba(140,230,25,0.05); box-shadow:0 10px 28px -6px rgba(140,230,25,0.22);
+  }
+  .discipline-card svg{width:30px;height:30px; margin-bottom:12px; transition:transform 0.25s ease;}
+  .discipline-card:hover svg{transform:scale(1.08);}
   .discipline-card b{display:block; color:var(--white); font-size:14px; text-transform:uppercase; letter-spacing:0.5px;}
   .discipline-empty-msg{color:rgba(255,255,255,0.55); font-size:14px; text-align:center; padding:10px 4px;}
   /* mismo mensaje pero sobre fondo claro (sección de horarios) */
@@ -106,9 +136,9 @@
   .cta-bar h2{color:var(--white); font-size:clamp(20px,3vw,30px); max-width:600px;}
 
   /* --- foto full con texto centrado --- */
-  .photo-statement{position:relative; min-height:70vh; display:flex; align-items:center; justify-content:center; text-align:center;
+  .photo-statement{position:relative; overflow:hidden; min-height:70vh; display:flex; align-items:center; justify-content:center; text-align:center;
     background:linear-gradient(0deg, rgba(11,12,8,0.85), rgba(11,12,8,0.5)), url('img/clase-grupal.jpg'); background-size:cover; background-position:center;}
-  .photo-statement .inner{max-width:640px; padding:24px;}
+  .photo-statement .inner{position:relative; z-index:1; max-width:640px; padding:24px;}
   .photo-statement .eyebrow{color:var(--white); font-size:13px; letter-spacing:1px; margin-bottom:14px;}
   .photo-statement h2{color:var(--white); font-size:clamp(32px,6vw,58px); margin-bottom:20px;}
   .photo-statement p{color:rgba(255,255,255,0.8); font-size:15px; line-height:1.6; margin-bottom:30px;}
@@ -128,8 +158,16 @@
   .class-times{text-align:right; font-size:16px; font-weight:600;}
   .class-times .new{display:inline-block; background:var(--lime); color:var(--black); font-size:10px; padding:3px 8px; border-radius:999px; margin-top:6px; font-weight:800; letter-spacing:0.5px;}
   .days-row{display:flex; gap:5px; margin-top:8px;}
-  .day-chip{width:28px;height:24px;border-radius:5px; display:flex;align-items:center;justify-content:center; font-family:'JetBrains Mono'; font-size:10px; font-weight:700; border:1px solid rgba(0,0,0,0.15); color:rgba(0,0,0,0.3);}
+  .day-chip{width:28px;height:24px;border-radius:5px; display:flex;align-items:center;justify-content:center; font-family:'JetBrains Mono'; font-size:10px; font-weight:700; border:1px solid rgba(0,0,0,0.15); color:rgba(0,0,0,0.3); transition:background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;}
   .day-chip.active{background:var(--lime); color:var(--black); border-color:var(--lime);}
+  .class-row{transition:background-color 0.25s ease;}
+  .class-row:hover{background-color:rgba(140,230,25,0.045);}
+  .class-name-row{display:flex; align-items:center; gap:9px; flex-wrap:wrap;}
+  .status-badge{
+    display:inline-flex; align-items:center; gap:5px; background:rgba(140,230,25,0.12); color:var(--lime-dark);
+    font-size:10px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; padding:3px 9px; border-radius:999px;
+  }
+  .status-badge::before{content:''; width:6px; height:6px; border-radius:50%; background:var(--lime); flex-shrink:0;}
 
   /* --- galería: carrusel horizontal --- */
   .carousel-wrap{position:relative;}
@@ -194,8 +232,23 @@
     box-shadow:0 6px 20px rgba(0,0,0,0.35);
     transition:background 0.15s, transform 0.15s;
   }
-  .wa-float svg{width:28px;height:28px;}
+  .wa-float svg{width:28px;height:28px; position:relative; z-index:1;}
   .wa-float:hover{background:#1ebe5b; transform:scale(1.05);}
+  .wa-float:active{transform:scale(0.94);}
+  /* anillo de pulso sutil detrás del botón -- solo transform/opacity
+     (compositor-friendly), no repinta box-shadow en loop */
+  .wa-float::before{
+    content:''; position:absolute; inset:0; border-radius:50%;
+    background:#25D366; opacity:0.55; animation:wa-pulse 2.6s ease-out infinite;
+  }
+  @keyframes wa-pulse{
+    0%{transform:scale(0.9); opacity:0.5;}
+    70%{transform:scale(1.7); opacity:0;}
+    100%{transform:scale(1.7); opacity:0;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .wa-float::before{animation:none; display:none;}
+  }
   @media(max-width:400px){
     .wa-float{width:48px;height:48px; right:14px; bottom:14px;}
     .wa-float svg{width:24px;height:24px;}
@@ -277,13 +330,15 @@
 </header>
 
 <section class="hero">
+  <div class="glow" style="width:560px; height:560px; top:-160px; right:-140px; background:radial-gradient(circle, rgba(140,230,25,0.22), transparent 70%);"></div>
+  <div class="glow" style="width:420px; height:420px; bottom:-180px; left:-120px; background:radial-gradient(circle, rgba(140,230,25,0.12), transparent 70%);"></div>
   <div class="hero-inner">
-    <h1 class="display">Entrená con<br><span class="fit">propósito.</span></h1>
-    <p>Aparatos, boxeo, kickstrike y crossfit en un mismo espacio. Cada clase tiene su horario, cada horario un lugar para vos.</p>
-    <div class="cta-row" style="display:flex; gap:14px; flex-wrap:wrap;">
+    <h1 class="display reveal">Entrená con<br><span class="fit">propósito.</span></h1>
+    <p class="reveal">Aparatos, boxeo, kickstrike y crossfit en un mismo espacio. Cada clase tiene su horario, cada horario un lugar para vos.</p>
+    <div class="cta-row reveal" style="display:flex; gap:14px; flex-wrap:wrap;">
       <a class="pill" href="#clases">Ver horarios</a>
     </div>
-    <div class="hero-card">
+    <div class="hero-card reveal">
       <svg viewBox="0 0 24 24" fill="none" stroke="#8CE619" stroke-width="2"><path d="M12 22s7-7.5 7-13a7 7 0 10-14 0c0 5.5 7 13 7 13z"/><circle cx="12" cy="9" r="2.5"/></svg>
       <div><b>Videla Castillo 3131</b><span>Mendoza, Argentina</span></div>
       <a href="#contacto">Ver mapa</a>
@@ -293,17 +348,17 @@
 
 <section class="values">
   <div class="values-grid">
-    <div>
+    <div class="reveal">
       <div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#8CE619" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></div>
       <h3>Sin vueltas, resultados reales.</h3>
       <p>Aparatos, pesas libres y funcional para entrenar en serio, sin relleno.</p>
     </div>
-    <div>
+    <div class="reveal">
       <div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#8CE619" stroke-width="2"><path d="M12 2l2.5 6.5L21 9l-5 4.5L17.5 21 12 17l-5.5 4L8 13.5 3 9l6.5-0.5z"/></svg></div>
       <h3>A tu ritmo, a tu nivel.</h3>
       <p>Aparezcas con la experiencia que tengas, hay un horario y una clase que te queda.</p>
     </div>
-    <div>
+    <div class="reveal">
       <div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#8CE619" stroke-width="2"><circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M2 21c0-3.5 2.5-6 6-6M22 21c0-3.5-2.5-6-6-6"/></svg></div>
       <h3>Comunidad que te banca.</h3>
       <p>El grupo que entrena al lado tuyo es parte de por qué volvés al día siguiente.</p>
@@ -312,8 +367,10 @@
 </section>
 
 <section class="split-dark">
+  <div class="glow" style="width:480px; height:480px; top:-100px; left:-160px; background:radial-gradient(circle, rgba(140,230,25,0.16), transparent 70%);"></div>
+  <div class="glow" style="width:400px; height:400px; bottom:-160px; right:-100px; background:radial-gradient(circle, rgba(140,230,25,0.13), transparent 70%);"></div>
   <div class="split-inner">
-    <div>
+    <div class="reveal">
       <h2 class="display">Todo bajo<br>un mismo techo.</h2>
       <p>No hace falta cambiar de gimnasio según lo que quieras entrenar hoy. Aparatos, boxeo, kickstrike y crossfit conviven en el mismo espacio, con el mismo grupo.</p>
       <a class="pill pill-solid" href="#clases">Ver todas las clases</a>
@@ -332,19 +389,19 @@
 
 <section class="cards">
   <div class="cards-grid">
-    <div class="card">
+    <div class="card reveal">
       <div class="card-img"><img src="img/gym-01.jpg" alt="Instalaciones GreenFit"></div>
       <h3>Conocé las instalaciones</h3>
       <p>Piso de goma, zona de arena, anillas, llantas y rack de pesas libres bajo el mismo techo.</p>
       <a href="#galeria">Ver galería</a>
     </div>
-    <div class="card">
+    <div class="card reveal">
       <div class="card-img"><img src="img/gym-04.jpg" alt="Horarios GreenFit"></div>
       <h3>Horarios de clases</h3>
       <p>Aparatos, boxeo, kickstrike y crossfit, con horarios de mañana, tarde y noche todos los días.</p>
       <a href="#clases">Ver horarios</a>
     </div>
-    <div class="card">
+    <div class="card reveal">
       <div class="card-img"><img src="img/gym-02.jpg" alt="Recepción GreenFit"></div>
       <h3>Cómo llegar</h3>
       <p>Videla Castillo 3131, Mendoza. Mapa interactivo y contacto directo por WhatsApp.</p>
@@ -354,7 +411,8 @@
 </section>
 
 <div class="photo-statement">
-  <div class="inner">
+  <div class="glow" style="width:500px; height:500px; top:50%; left:50%; transform:translate(-50%,-50%); background:radial-gradient(circle, rgba(140,230,25,0.16), transparent 72%);"></div>
+  <div class="inner reveal">
     <div class="eyebrow mono">NO NECESITÁS ESTAR LISTO.</div>
     <h2 class="display">Solo tenés que empezar.</h2>
     <p>Tu primera clase no es sobre estar en forma, es sobre aparecer. Coaching real, un grupo que te acompaña y el entrenamiento que te lleva más lejos.</p>
@@ -363,7 +421,7 @@
 
 <section id="clases">
   <div class="section-inner">
-    <div class="section-head">
+    <div class="section-head reveal">
       <div class="eyebrow mono">HORARIOS</div>
       <h2 class="display">Elegí tu ritmo</h2>
     </div>
@@ -383,7 +441,7 @@
 
 <section id="galeria" style="background:var(--grey-bg);">
   <div class="section-inner">
-    <div class="section-head">
+    <div class="section-head reveal">
       <div class="eyebrow mono">GALERÍA</div>
       <h2 class="display">Así se entrena acá</h2>
     </div>
@@ -407,7 +465,7 @@
 
 <section id="contacto" class="contact">
   <div class="section-inner">
-    <div class="section-head">
+    <div class="section-head reveal">
       <div class="eyebrow mono">UBICACIÓN Y CONTACTO</div>
       <h2 class="display">Vení a entrenar</h2>
     </div>
@@ -488,6 +546,39 @@
   function normalizar(texto) {
     return (texto ?? '').normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().trim();
   }
+
+  // --- Animaciones al hacer scroll (fade-up + reveal escalonado). Un solo
+  // IntersectionObserver compartido para todo el sitio -- liviano a
+  // propósito (solo opacity/transform, sin librerías de terceros) para no
+  // afectar el rendimiento en mobile. Respeta prefers-reduced-motion. Esto
+  // es puramente visual: no toca qué datos se piden a Supabase ni cómo se
+  // procesan, solo observa elementos que YA fueron insertados en el DOM
+  // (por las funciones de hidratación, sin modificarlas).
+  const prefiereMenosMovimiento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const revealObserver = prefiereMenosMovimiento
+    ? null
+    : new IntersectionObserver(
+        (entradas) => {
+          for (const entrada of entradas) {
+            if (entrada.isIntersecting) {
+              entrada.target.classList.add('is-visible');
+              revealObserver.unobserve(entrada.target);
+            }
+          }
+        },
+        { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
+      );
+
+  function observarReveal(elementos) {
+    if (prefiereMenosMovimiento) return;
+    elementos.forEach((el, i) => {
+      el.style.setProperty('--stagger', i % 8);
+      revealObserver.observe(el);
+    });
+  }
+
+  // Elementos estáticos (ya existen en el HTML al cargar la página).
+  observarReveal(document.querySelectorAll('.reveal'));
 
   // --- Banner de anuncios: oculto por defecto, solo se muestra si hay uno
   // activo con mensaje. Cualquier error de red/consulta lo deja oculto sin
@@ -584,10 +675,11 @@
       grid.innerHTML = disciplinas
         .map((d) => {
           const icono = ICONOS_POR_NOMBRE[normalizar(d.name)] ?? ICONO_GENERICO;
-          return `<div class="discipline-card">${icono}<b>${escapeHtml(d.name)}</b></div>`;
+          return `<div class="discipline-card reveal">${icono}<b>${escapeHtml(d.name)}</b></div>`;
         })
         .join('');
       vacio.style.display = 'none';
+      observarReveal(grid.querySelectorAll('.reveal'));
     } catch (err) {
       console.warn('[GreenFit] No se pudo cargar el catálogo de disciplinas:', err);
       grid.innerHTML = '';
@@ -697,10 +789,13 @@
 
         const icono = ICONOS_POR_NOMBRE[normalizar(d.name)] ?? ICONO_GENERICO;
         filas.push(`
-          <div class="class-row">
+          <div class="class-row reveal">
             <div class="class-icon">${icono}</div>
             <div>
-              <div class="class-name">${escapeHtml(d.name)}</div>
+              <div class="class-name-row">
+                <div class="class-name">${escapeHtml(d.name)}</div>
+                <span class="status-badge">Activa</span>
+              </div>
               <div class="days-row">${chips}</div>
             </div>
             <div class="class-times">${lineasHorario}</div>
@@ -715,6 +810,7 @@
       }
       lista.innerHTML = filas.join('');
       vacio.style.display = 'none';
+      observarReveal(lista.querySelectorAll('.reveal'));
     } catch (err) {
       console.warn('[GreenFit] No se pudo cargar la sección de horarios:', err);
       lista.innerHTML = '';
