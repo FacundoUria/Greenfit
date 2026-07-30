@@ -35,11 +35,6 @@
     .reveal{opacity:1; transform:none; transition:none;}
   }
 
-  /* --- resplandores de fondo (Hero / Disciplinas / CTA), decorativos y
-     estáticos -- position:absolute + blur, sin animación continua, así el
-     costo de repintado es mínimo. --- */
-  .glow{position:absolute; border-radius:50%; filter:blur(90px); pointer-events:none; z-index:0;}
-
   /* --- barra superior de anuncio, como el ticket banner de crossfit --- */
   .announce{background:var(--lime); color:var(--black); text-align:center; padding:10px 16px; font-size:13px; font-weight:700;}
   .announce a{color:var(--black); text-decoration:underline; font-weight:700; margin-left:6px;}
@@ -77,20 +72,13 @@
   .icon-btn:active{transform:translateY(0) scale(0.94);}
 
   /* --- hero --- */
-  /* Se agrega una 3ra capa (arriba de todo) que funde el borde inferior de
-     la foto hacia el gris-crema de la sección siguiente -- así no hay un
-     corte duro foto/color sólido, sino que la foto "se disuelve" en el
-     fondo de abajo. Es la MISMA técnica que se repite en cada costura de
-     color de la página (ver comentarios en .split-dark/.cards/etc). */
+  /* Foto limpia, sin capas de fundido encima -- la transición de color hacia
+     la sección de abajo se resuelve del lado de esa sección (background
+     fading puro entre bloques de color, nunca tapando la imagen). */
   .hero{
     position:relative; overflow:hidden; min-height:88vh; display:flex; align-items:center;
-    background-image:
-      linear-gradient(to top, var(--grey-bg), transparent),
-      linear-gradient(90deg, rgba(11,12,8,0.92) 0%, rgba(11,12,8,0.55) 45%, rgba(11,12,8,0.2) 100%),
-      url('img/gym-03.jpg');
-    background-position: bottom, center, center;
-    background-size: 100% 140px, cover, cover;
-    background-repeat: no-repeat, no-repeat, no-repeat;
+    background:linear-gradient(90deg, rgba(11,12,8,0.92) 0%, rgba(11,12,8,0.55) 45%, rgba(11,12,8,0.2) 100%), url('img/gym-03.jpg');
+    background-size:cover; background-position:center;
   }
   .hero-inner{position:relative; z-index:1; max-width:1280px; margin:0 auto; padding:60px 24px; width:100%;}
   .hero h1{color:var(--white); font-size:clamp(40px,6vw,64px); max-width:680px;}
@@ -130,13 +118,24 @@
      (más o menos columnas según el ancho disponible) sin importar cuántas
      disciplinas activas haya cargadas en un momento dado. */
   .discipline-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:14px;}
+  /* "Mazo de cartas": cada tarjeta arranca con una leve rotación alternada
+     (ciclo de a 3, así funciona sea cual sea la cantidad de disciplinas
+     activas) y se endereza + levanta un poco al pasar el mouse. Es solo
+     `transform`, nunca afecta el tamaño de fila del grid -- cero riesgo de
+     que una tarjeta se superponga a la de al lado. Sombra neutra (negro),
+     sin ningún tinte de color -- nada de "brillo". */
   .discipline-card{
     background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:24px; text-align:center;
-    transition:transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
+    transform:rotate(var(--tilt, 0deg));
+    transition:transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
   }
+  .discipline-card:nth-child(3n+1){--tilt:-1.4deg;}
+  .discipline-card:nth-child(3n+2){--tilt:1deg;}
+  .discipline-card:nth-child(3n+3){--tilt:-0.6deg;}
   .discipline-card:hover{
-    transform:translateY(-4px); border-color:rgba(140,230,25,0.45);
-    background-color:rgba(140,230,25,0.05); box-shadow:0 10px 28px -6px rgba(140,230,25,0.22);
+    transform:rotate(0deg) translateY(-4px); border-color:rgba(140,230,25,0.4);
+    box-shadow:0 14px 26px -10px rgba(0,0,0,0.5);
+    position:relative; z-index:2;
   }
   .discipline-card svg{width:30px;height:30px; margin-bottom:12px; transition:transform 0.25s ease;}
   .discipline-card:hover svg{transform:scale(1.08);}
@@ -168,19 +167,11 @@
   .cta-bar h2{color:var(--white); font-size:clamp(20px,3vw,30px); max-width:600px;}
 
   /* --- foto full con texto centrado --- */
-  /* Dos capas extra (arriba de todo) funden ambos bordes de la foto hacia
-     blanco -- .cards (arriba) y #clases (abajo) son blancas, así que la
-     foto "emerge" y "se hunde" en blanco en vez de cortar en seco. */
+  /* Foto limpia, sin capas de fundido encima (mismo criterio que .hero). */
   .photo-statement{
     position:relative; overflow:hidden; min-height:70vh; display:flex; align-items:center; justify-content:center; text-align:center;
-    background-image:
-      linear-gradient(to bottom, var(--white), transparent),
-      linear-gradient(to top, var(--white), transparent),
-      linear-gradient(0deg, rgba(11,12,8,0.85), rgba(11,12,8,0.5)),
-      url('img/clase-grupal.jpg');
-    background-position: top, bottom, center, center;
-    background-size: 100% 110px, 100% 110px, cover, cover;
-    background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
+    background:linear-gradient(0deg, rgba(11,12,8,0.85), rgba(11,12,8,0.5)), url('img/clase-grupal.jpg');
+    background-size:cover; background-position:center;
   }
   .photo-statement .inner{position:relative; z-index:1; max-width:640px; padding:24px;}
   .photo-statement .eyebrow{color:var(--white); font-size:13px; letter-spacing:1px; margin-bottom:14px;}
@@ -308,14 +299,27 @@
     background-position:top; background-size:100% 110px; background-repeat:no-repeat;
   }
   .contact{background:var(--grey-bg);}
-  .contact-grid{display:grid; grid-template-columns:1fr 1fr; gap:34px; align-items:stretch;}
-  .contact-info{display:flex; flex-direction:column; gap:16px; justify-content:center;}
-  .contact-card{padding:20px; background:var(--white); border-radius:6px; display:flex; gap:14px; align-items:center;}
-  .contact-card svg{width:24px;height:24px; flex-shrink:0;}
-  .contact-card b{display:block; font-size:11px; color:var(--lime-dark); letter-spacing:1px; text-transform:uppercase; margin-bottom:4px;}
-  .contact-card span{font-size:15px; font-weight:600;}
-  .map-frame{border-radius:6px; overflow:hidden; min-height:340px;}
-  .map-frame iframe{width:100%; height:100%; min-height:340px; border:0; display:block;}
+  /* Mapa a pantalla completa dentro de la sección, con una tarjeta flotante
+     sutil (dirección/WhatsApp/Instagram) apoyada arriba -- una sola pieza
+     integrada en vez de dos cajas separadas lado a lado. */
+  .map-hero{position:relative; border-radius:14px; overflow:hidden; min-height:460px;}
+  .map-hero .map-frame{position:absolute; inset:0;}
+  .map-hero .map-frame iframe{width:100%; height:100%; border:0; display:block;}
+  .floating-card{
+    position:absolute; top:20px; left:20px; z-index:1; max-width:290px;
+    display:flex; flex-direction:column; gap:2px; background:rgba(255,255,255,0.96);
+    border-radius:12px; padding:8px; box-shadow:0 18px 40px -18px rgba(0,0,0,0.45);
+  }
+  .contact-card{padding:12px 10px; border-radius:8px; display:flex; gap:14px; align-items:center; transition:background-color 0.2s ease;}
+  a.contact-card:hover{background-color:rgba(140,230,25,0.08);}
+  .contact-card svg{width:22px;height:22px; flex-shrink:0;}
+  .contact-card b{display:block; font-size:11px; color:var(--lime-dark); letter-spacing:1px; text-transform:uppercase; margin-bottom:3px;}
+  .contact-card span{font-size:14px; font-weight:600;}
+  @media(max-width:680px){
+    .map-hero{min-height:auto; border-radius:0; overflow:visible;}
+    .map-hero .map-frame{position:static; border-radius:12px; overflow:hidden; height:300px;}
+    .floating-card{position:static; max-width:none; margin-bottom:16px;}
+  }
 
   /* --- footer estilo crossfit: columnas + CTA a la derecha --- */
   /* Igual que header: el border-top seco se reemplaza por el degradé que
@@ -341,7 +345,6 @@
     .class-times{grid-column:2; text-align:left; margin-top:6px;}
     .gallery-grid{grid-template-columns:repeat(2,1fr);}
     .g-item.wide{grid-column:span 2;}
-    .contact-grid{grid-template-columns:1fr;}
     .footer-grid{grid-template-columns:1fr 1fr; gap:30px;}
     .cta-bar-inner{flex-direction:column; align-items:flex-start;}
   }
@@ -389,8 +392,6 @@
 </header>
 
 <section class="hero">
-  <div class="glow" style="width:560px; height:560px; top:-160px; right:-140px; background:radial-gradient(circle, rgba(140,230,25,0.22), transparent 70%);"></div>
-  <div class="glow" style="width:420px; height:420px; bottom:-180px; left:-120px; background:radial-gradient(circle, rgba(140,230,25,0.12), transparent 70%);"></div>
   <div class="hero-inner">
     <h1 class="display reveal">Entrená con<br><span class="fit">propósito.</span></h1>
     <p class="reveal">Aparatos, boxeo, kickstrike y crossfit en un mismo espacio. Cada clase tiene su horario, cada horario un lugar para vos.</p>
@@ -426,8 +427,6 @@
 </section>
 
 <section class="split-dark">
-  <div class="glow" style="width:480px; height:480px; top:-100px; left:-160px; background:radial-gradient(circle, rgba(140,230,25,0.16), transparent 70%);"></div>
-  <div class="glow" style="width:400px; height:400px; bottom:-160px; right:-100px; background:radial-gradient(circle, rgba(140,230,25,0.13), transparent 70%);"></div>
   <div class="split-inner">
     <div class="reveal">
       <h2 class="display">Todo bajo<br>un mismo techo.</h2>
@@ -470,7 +469,6 @@
 </section>
 
 <div class="photo-statement">
-  <div class="glow" style="width:500px; height:500px; top:50%; left:50%; transform:translate(-50%,-50%); background:radial-gradient(circle, rgba(140,230,25,0.16), transparent 72%);"></div>
   <div class="inner reveal">
     <div class="eyebrow mono">NO NECESITÁS ESTAR LISTO.</div>
     <h2 class="display">Solo tenés que empezar.</h2>
@@ -528,8 +526,11 @@
       <div class="eyebrow mono">UBICACIÓN Y CONTACTO</div>
       <h2 class="display">Vení a entrenar</h2>
     </div>
-    <div class="contact-grid">
-      <div class="contact-info">
+    <div class="map-hero reveal">
+      <div class="map-frame">
+        <iframe src="https://www.google.com/maps?q=-32.8673553,-68.8268646&z=16&output=embed" loading="lazy" allowfullscreen></iframe>
+      </div>
+      <div class="floating-card">
         <div class="contact-card">
           <svg viewBox="0 0 24 24" fill="none" stroke="#8CE619" stroke-width="2"><path d="M12 22s7-7.5 7-13a7 7 0 10-14 0c0 5.5 7 13 7 13z"/><circle cx="12" cy="9" r="2.5"/></svg>
           <div><b>Dirección</b><span>Videla Castillo 3131, Mendoza</span></div>
@@ -542,9 +543,6 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="#8CE619" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.8" fill="#8CE619"/></svg>
           <div><b>Instagram</b><span data-ig-text>@green_fitargentina</span></div>
         </a>
-      </div>
-      <div class="map-frame">
-        <iframe src="https://www.google.com/maps?q=-32.8673553,-68.8268646&z=16&output=embed" loading="lazy" allowfullscreen></iframe>
       </div>
     </div>
   </div>
