@@ -93,24 +93,10 @@
   .hero-card span{color:rgba(255,255,255,0.65); font-size:13px;}
   .hero-card a{color:var(--lime); font-size:12px; font-weight:700; text-decoration:none; text-transform:uppercase; margin-left:auto;}
 
-  /* --- valores: 3 columnas, iconos en círculo --- */
-  /* Antes era una caja gris-crema con un parche de degradé negro pegado
-     arriba -- se veía como una mancha, no como una transición. Se resuelve
-     de raíz: esta sección pasa a ser oscura (mismo negro que .split-dark,
-     sin ninguna franja de degradé), así el tramo foto->values->split-dark
-     queda continuo sin ningún choque de color en el medio. La única
-     costura de color real que queda es split-dark -> .cards, más abajo. */
-  .values{background:var(--black); padding:100px 24px;}
-  .values-grid{max-width:1160px; margin:0 auto; display:grid; grid-template-columns:repeat(3,1fr); gap:50px; text-align:center;}
-  .value-icon{width:64px;height:64px; border-radius:50%; border:2px solid var(--lime); display:flex; align-items:center; justify-content:center; margin:0 auto 20px;}
-  .value-icon svg{width:28px;height:28px;}
-  .values h3{color:var(--white); font-size:19px; font-weight:800; margin-bottom:10px;}
-  .values p{color:rgba(255,255,255,0.65); font-size:14px; line-height:1.6;}
-
   /* --- sección oscura split: headline + mosaico de disciplinas --- */
-  /* .values (arriba) ahora es del mismo negro -- sin costura real que
-     disimular acá, por eso no lleva degradé. Más padding vertical para que
-     el contenido respire. */
+  /* Conecta directo con el hero (foto oscura arriba de todo, sin sección
+     intermedia) -- ambos son tonos oscuros, así que no hace falta ningún
+     degradé para disimular la costura. */
   .split-dark{position:relative; overflow:hidden; background:var(--black); padding:110px 24px;}
   .split-inner{position:relative; z-index:1; max-width:1160px; margin:0 auto; display:grid; grid-template-columns:1.1fr 0.9fr; gap:60px; align-items:center;}
   .split-dark h2{color:var(--white); font-size:clamp(30px,4.5vw,46px); margin-bottom:20px;}
@@ -355,7 +341,6 @@
 
   @media(max-width:900px){
     nav ul{display:none;}
-    .values-grid{grid-template-columns:1fr; gap:36px;}
     .split-inner{grid-template-columns:1fr;}
     .cards-grid{grid-template-columns:1fr;}
     .card{--tilt:0deg;}
@@ -420,26 +405,6 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="#8CE619" stroke-width="2"><path d="M12 22s7-7.5 7-13a7 7 0 10-14 0c0 5.5 7 13 7 13z"/><circle cx="12" cy="9" r="2.5"/></svg>
       <div><b>Videla Castillo 3131</b><span>Mendoza, Argentina</span></div>
       <a href="#contacto">Ver mapa</a>
-    </div>
-  </div>
-</section>
-
-<section class="values">
-  <div class="values-grid">
-    <div class="reveal">
-      <div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#8CE619" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></div>
-      <h3>Sin vueltas, resultados reales.</h3>
-      <p>Aparatos, pesas libres y funcional para entrenar en serio, sin relleno.</p>
-    </div>
-    <div class="reveal">
-      <div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#8CE619" stroke-width="2"><path d="M12 2l2.5 6.5L21 9l-5 4.5L17.5 21 12 17l-5.5 4L8 13.5 3 9l6.5-0.5z"/></svg></div>
-      <h3>A tu ritmo, a tu nivel.</h3>
-      <p>Aparezcas con la experiencia que tengas, hay un horario y una clase que te queda.</p>
-    </div>
-    <div class="reveal">
-      <div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#8CE619" stroke-width="2"><circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M2 21c0-3.5 2.5-6 6-6M22 21c0-3.5-2.5-6-6-6"/></svg></div>
-      <h3>Comunidad que te banca.</h3>
-      <p>El grupo que entrena al lado tuyo es parte de por qué volvés al día siguiente.</p>
     </div>
   </div>
 </section>
