@@ -93,24 +93,25 @@
   .hero-card span{color:rgba(255,255,255,0.65); font-size:13px;}
   .hero-card a{color:var(--lime); font-size:12px; font-weight:700; text-decoration:none; text-transform:uppercase; margin-left:auto;}
 
-  /* --- valores: 3 columnas, iconos en círculo, fondo claro --- */
-  .values{background:var(--grey-bg); padding:70px 24px;}
+  /* --- valores: 3 columnas, iconos en círculo --- */
+  /* Antes era una caja gris-crema con un parche de degradé negro pegado
+     arriba -- se veía como una mancha, no como una transición. Se resuelve
+     de raíz: esta sección pasa a ser oscura (mismo negro que .split-dark,
+     sin ninguna franja de degradé), así el tramo foto->values->split-dark
+     queda continuo sin ningún choque de color en el medio. La única
+     costura de color real que queda es split-dark -> .cards, más abajo. */
+  .values{background:var(--black); padding:100px 24px;}
   .values-grid{max-width:1160px; margin:0 auto; display:grid; grid-template-columns:repeat(3,1fr); gap:50px; text-align:center;}
   .value-icon{width:64px;height:64px; border-radius:50%; border:2px solid var(--lime); display:flex; align-items:center; justify-content:center; margin:0 auto 20px;}
   .value-icon svg{width:28px;height:28px;}
-  .values h3{font-size:19px; font-weight:800; margin-bottom:10px;}
-  .values p{color:var(--grey-text); font-size:14px; line-height:1.6;}
+  .values h3{color:var(--white); font-size:19px; font-weight:800; margin-bottom:10px;}
+  .values p{color:rgba(255,255,255,0.65); font-size:14px; line-height:1.6;}
 
   /* --- sección oscura split: headline + mosaico de disciplinas --- */
-  /* La capa de gradiente funde el gris-crema de la sección de arriba
-     (.values) hacia este negro -- reemplaza el corte duro gris/negro por
-     una transición progresiva de ~130px. */
-  .split-dark{
-    position:relative; overflow:hidden; padding:80px 24px;
-    background-color:var(--black);
-    background-image:linear-gradient(to bottom, var(--grey-bg), transparent);
-    background-position:top; background-size:100% 130px; background-repeat:no-repeat;
-  }
+  /* .values (arriba) ahora es del mismo negro -- sin costura real que
+     disimular acá, por eso no lleva degradé. Más padding vertical para que
+     el contenido respire. */
+  .split-dark{position:relative; overflow:hidden; background:var(--black); padding:110px 24px;}
   .split-inner{position:relative; z-index:1; max-width:1160px; margin:0 auto; display:grid; grid-template-columns:1.1fr 0.9fr; gap:60px; align-items:center;}
   .split-dark h2{color:var(--white); font-size:clamp(30px,4.5vw,46px); margin-bottom:20px;}
   .split-dark p{color:rgba(255,255,255,0.65); font-size:15px; line-height:1.7; margin-bottom:28px; max-width:460px;}
@@ -145,16 +146,32 @@
   #scheduleEmptyMsg{color:var(--grey-text);}
 
   /* --- cards de navegación tipo crossfit (foto + título + texto + link) --- */
-  /* Funde el negro de .split-dark hacia este blanco -- mismo criterio que
-     el resto de las costuras de la página. */
+  /* Funde el negro de .split-dark hacia este blanco -- fundido chico (60px,
+     no 110) para no repetir el mismo ahogo que en .split-dark. */
   .cards{
     padding:80px 24px;
     background-color:var(--white);
     background-image:linear-gradient(to bottom, var(--black), transparent);
-    background-position:top; background-size:100% 110px; background-repeat:no-repeat;
+    background-position:top; background-size:100% 60px; background-repeat:no-repeat;
   }
   .cards-grid{max-width:1160px; margin:0 auto; display:grid; grid-template-columns:repeat(3,1fr); gap:28px;}
-  .card{}
+  /* Mismo "mazo de cartas" que las tarjetas de disciplina: leve rotación
+     alternada en reposo, se endereza + levanta al hover. Solo `transform`,
+     no mueve el layout. En mobile (1 columna) se desactiva la rotación --
+     apiladas verticalmente, tilteadas se ven desprolijas, no elegantes. */
+  .card{
+    transform:rotate(var(--tilt, 0deg));
+    transition:transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius:8px;
+  }
+  .card:nth-child(3n+1){--tilt:-1.5deg;}
+  .card:nth-child(3n+2){--tilt:1.1deg;}
+  .card:nth-child(3n+3){--tilt:-0.8deg;}
+  .card:hover{
+    transform:rotate(0deg) translateY(-6px);
+    box-shadow:0 20px 34px -14px rgba(0,0,0,0.3);
+    position:relative; z-index:2;
+  }
   .card-img{aspect-ratio:16/10; border-radius:6px; overflow:hidden; margin-bottom:20px;}
   .card-img img{width:100%;height:100%;object-fit:cover; display:block;}
   .card h3{font-size:19px; font-weight:800; margin-bottom:8px;}
@@ -296,7 +313,7 @@
   #galeria{
     background-color:var(--grey-bg);
     background-image:linear-gradient(to bottom, var(--white), transparent);
-    background-position:top; background-size:100% 110px; background-repeat:no-repeat;
+    background-position:top; background-size:100% 60px; background-repeat:no-repeat;
   }
   .contact{background:var(--grey-bg);}
   /* Mapa a pantalla completa dentro de la sección, con una tarjeta flotante
@@ -328,7 +345,7 @@
     padding:60px 24px 30px;
     background-color:var(--white);
     background-image:linear-gradient(to bottom, var(--grey-bg), transparent);
-    background-position:top; background-size:100% 100px; background-repeat:no-repeat;
+    background-position:top; background-size:100% 60px; background-repeat:no-repeat;
   }
   .footer-grid{max-width:1160px;margin:0 auto; display:grid; grid-template-columns:1.2fr 1fr 1fr 1.3fr; gap:40px;}
   .footer-col h4{font-size:12px; text-transform:uppercase; letter-spacing:1px; font-weight:800; margin-bottom:16px;}
@@ -341,6 +358,7 @@
     .values-grid{grid-template-columns:1fr; gap:36px;}
     .split-inner{grid-template-columns:1fr;}
     .cards-grid{grid-template-columns:1fr;}
+    .card{--tilt:0deg;}
     .class-row{grid-template-columns:50px 1fr;}
     .class-times{grid-column:2; text-align:left; margin-top:6px;}
     .gallery-grid{grid-template-columns:repeat(2,1fr);}
