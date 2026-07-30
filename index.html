@@ -45,7 +45,10 @@
   .announce a{color:var(--black); text-decoration:underline; font-weight:700; margin-left:6px;}
 
   /* --- header --- */
-  header{background:var(--black); border-bottom:1px solid rgba(255,255,255,0.08);}
+  /* Antes tenía un border-bottom seco -- lo reemplazamos por una sombra
+     difusa (blur amplio, opacidad muy baja) para dar sensación de relieve
+     sin cortar el degradé continuo entre secciones. */
+  header{background:var(--black); box-shadow:0 16px 30px -22px rgba(0,0,0,0.6);}
   .nav-inner{max-width:1280px;margin:0 auto;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;}
   .logo{color:var(--white); font-size:22px; letter-spacing:0.5px;}
   .logo span{color:var(--lime);}
@@ -74,7 +77,21 @@
   .icon-btn:active{transform:translateY(0) scale(0.94);}
 
   /* --- hero --- */
-  .hero{position:relative; overflow:hidden; min-height:88vh; display:flex; align-items:center; background:linear-gradient(90deg, rgba(11,12,8,0.92) 0%, rgba(11,12,8,0.55) 45%, rgba(11,12,8,0.2) 100%), url('img/gym-03.jpg'); background-size:cover; background-position:center;}
+  /* Se agrega una 3ra capa (arriba de todo) que funde el borde inferior de
+     la foto hacia el gris-crema de la sección siguiente -- así no hay un
+     corte duro foto/color sólido, sino que la foto "se disuelve" en el
+     fondo de abajo. Es la MISMA técnica que se repite en cada costura de
+     color de la página (ver comentarios en .split-dark/.cards/etc). */
+  .hero{
+    position:relative; overflow:hidden; min-height:88vh; display:flex; align-items:center;
+    background-image:
+      linear-gradient(to top, var(--grey-bg), transparent),
+      linear-gradient(90deg, rgba(11,12,8,0.92) 0%, rgba(11,12,8,0.55) 45%, rgba(11,12,8,0.2) 100%),
+      url('img/gym-03.jpg');
+    background-position: bottom, center, center;
+    background-size: 100% 140px, cover, cover;
+    background-repeat: no-repeat, no-repeat, no-repeat;
+  }
   .hero-inner{position:relative; z-index:1; max-width:1280px; margin:0 auto; padding:60px 24px; width:100%;}
   .hero h1{color:var(--white); font-size:clamp(40px,6vw,64px); max-width:680px;}
   .hero h1 .fit{color:var(--lime);}
@@ -97,7 +114,15 @@
   .values p{color:var(--grey-text); font-size:14px; line-height:1.6;}
 
   /* --- sección oscura split: headline + mosaico de disciplinas --- */
-  .split-dark{position:relative; overflow:hidden; background:var(--black); padding:80px 24px;}
+  /* La capa de gradiente funde el gris-crema de la sección de arriba
+     (.values) hacia este negro -- reemplaza el corte duro gris/negro por
+     una transición progresiva de ~130px. */
+  .split-dark{
+    position:relative; overflow:hidden; padding:80px 24px;
+    background-color:var(--black);
+    background-image:linear-gradient(to bottom, var(--grey-bg), transparent);
+    background-position:top; background-size:100% 130px; background-repeat:no-repeat;
+  }
   .split-inner{position:relative; z-index:1; max-width:1160px; margin:0 auto; display:grid; grid-template-columns:1.1fr 0.9fr; gap:60px; align-items:center;}
   .split-dark h2{color:var(--white); font-size:clamp(30px,4.5vw,46px); margin-bottom:20px;}
   .split-dark p{color:rgba(255,255,255,0.65); font-size:15px; line-height:1.7; margin-bottom:28px; max-width:460px;}
@@ -121,7 +146,14 @@
   #scheduleEmptyMsg{color:var(--grey-text);}
 
   /* --- cards de navegación tipo crossfit (foto + título + texto + link) --- */
-  .cards{background:var(--white); padding:80px 24px;}
+  /* Funde el negro de .split-dark hacia este blanco -- mismo criterio que
+     el resto de las costuras de la página. */
+  .cards{
+    padding:80px 24px;
+    background-color:var(--white);
+    background-image:linear-gradient(to bottom, var(--black), transparent);
+    background-position:top; background-size:100% 110px; background-repeat:no-repeat;
+  }
   .cards-grid{max-width:1160px; margin:0 auto; display:grid; grid-template-columns:repeat(3,1fr); gap:28px;}
   .card{}
   .card-img{aspect-ratio:16/10; border-radius:6px; overflow:hidden; margin-bottom:20px;}
@@ -136,8 +168,20 @@
   .cta-bar h2{color:var(--white); font-size:clamp(20px,3vw,30px); max-width:600px;}
 
   /* --- foto full con texto centrado --- */
-  .photo-statement{position:relative; overflow:hidden; min-height:70vh; display:flex; align-items:center; justify-content:center; text-align:center;
-    background:linear-gradient(0deg, rgba(11,12,8,0.85), rgba(11,12,8,0.5)), url('img/clase-grupal.jpg'); background-size:cover; background-position:center;}
+  /* Dos capas extra (arriba de todo) funden ambos bordes de la foto hacia
+     blanco -- .cards (arriba) y #clases (abajo) son blancas, así que la
+     foto "emerge" y "se hunde" en blanco en vez de cortar en seco. */
+  .photo-statement{
+    position:relative; overflow:hidden; min-height:70vh; display:flex; align-items:center; justify-content:center; text-align:center;
+    background-image:
+      linear-gradient(to bottom, var(--white), transparent),
+      linear-gradient(to top, var(--white), transparent),
+      linear-gradient(0deg, rgba(11,12,8,0.85), rgba(11,12,8,0.5)),
+      url('img/clase-grupal.jpg');
+    background-position: top, bottom, center, center;
+    background-size: 100% 110px, 100% 110px, cover, cover;
+    background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
+  }
   .photo-statement .inner{position:relative; z-index:1; max-width:640px; padding:24px;}
   .photo-statement .eyebrow{color:var(--white); font-size:13px; letter-spacing:1px; margin-bottom:14px;}
   .photo-statement h2{color:var(--white); font-size:clamp(32px,6vw,58px); margin-bottom:20px;}
@@ -255,6 +299,14 @@
   }
 
   /* --- contacto --- */
+  /* #galeria funde el blanco de #clases hacia este gris-crema; #contacto
+     comparte el mismo color que #galeria así que no necesita costura propia
+     -- entre esas dos ya es un lienzo continuo sin corte. */
+  #galeria{
+    background-color:var(--grey-bg);
+    background-image:linear-gradient(to bottom, var(--white), transparent);
+    background-position:top; background-size:100% 110px; background-repeat:no-repeat;
+  }
   .contact{background:var(--grey-bg);}
   .contact-grid{display:grid; grid-template-columns:1fr 1fr; gap:34px; align-items:stretch;}
   .contact-info{display:flex; flex-direction:column; gap:16px; justify-content:center;}
@@ -266,7 +318,14 @@
   .map-frame iframe{width:100%; height:100%; min-height:340px; border:0; display:block;}
 
   /* --- footer estilo crossfit: columnas + CTA a la derecha --- */
-  footer{background:var(--white); border-top:1px solid rgba(0,0,0,0.08); padding:60px 24px 30px;}
+  /* Igual que header: el border-top seco se reemplaza por el degradé que
+     funde el gris-crema de #contacto hacia este blanco. */
+  footer{
+    padding:60px 24px 30px;
+    background-color:var(--white);
+    background-image:linear-gradient(to bottom, var(--grey-bg), transparent);
+    background-position:top; background-size:100% 100px; background-repeat:no-repeat;
+  }
   .footer-grid{max-width:1160px;margin:0 auto; display:grid; grid-template-columns:1.2fr 1fr 1fr 1.3fr; gap:40px;}
   .footer-col h4{font-size:12px; text-transform:uppercase; letter-spacing:1px; font-weight:800; margin-bottom:16px;}
   .footer-col p, .footer-col a{color:var(--grey-text); font-size:13px; line-height:2; text-decoration:none; display:block;}
@@ -439,7 +498,7 @@
   </div>
 </section>
 
-<section id="galeria" style="background:var(--grey-bg);">
+<section id="galeria">
   <div class="section-inner">
     <div class="section-head reveal">
       <div class="eyebrow mono">GALERÍA</div>
