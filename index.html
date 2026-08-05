@@ -152,8 +152,17 @@
   /* Mismo "mazo de cartas" que las tarjetas de disciplina: leve rotación
      alternada en reposo, se endereza + levanta al hover. Solo `transform`,
      no mueve el layout. En mobile (1 columna) se desactiva la rotación --
-     apiladas verticalmente, tilteadas se ven desprolijas, no elegantes. */
+     apiladas verticalmente, tilteadas se ven desprolijas, no elegantes.
+     Toda la tarjeta es un <a> (full card click) -- reseteamos los estilos
+     de link por default y la armamos en flex-column para poder anclar el
+     CTA abajo con margin-top:auto sin importar cuánto texto tenga cada una. */
   .card{
+    display:flex;
+    flex-direction:column;
+    color:inherit;
+    text-decoration:none;
+    cursor:pointer;
+    background-color:var(--white);
     transform:rotate(var(--tilt, 0deg));
     transition:transform 0.3s ease, box-shadow 0.3s ease;
     border-radius:8px;
@@ -166,11 +175,15 @@
     box-shadow:0 20px 34px -14px rgba(0,0,0,0.3);
     position:relative; z-index:2;
   }
-  .card-img{aspect-ratio:16/10; border-radius:6px; overflow:hidden; margin-bottom:20px;}
+  .card-img{aspect-ratio:16/10; border-radius:6px; overflow:hidden;}
   .card-img img{width:100%;height:100%;object-fit:cover; display:block;}
-  .card h3{font-size:19px; font-weight:800; margin-bottom:8px;}
-  .card p{color:var(--grey-text); font-size:14px; line-height:1.6; margin-bottom:12px;}
-  .card a{color:var(--black); font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:0.5px; text-decoration:none; border-bottom:2px solid var(--lime);}
+  /* Bloque de contenido debajo de la imagen: la imagen queda a sangre
+     (edge-to-edge), el padding va acá para separar título/texto/CTA de los
+     bordes. flex-column + flex:1 para que el CTA pueda pegarse abajo. */
+  .card-body{padding:24px; display:flex; flex-direction:column; flex:1;}
+  .card h3{font-size:19px; font-weight:800; margin-bottom:10px;}
+  .card p{color:var(--grey-text); font-size:14px; line-height:1.6; margin-bottom:16px;}
+  .card-cta{margin-top:auto; padding-top:4px; color:var(--black); font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid var(--lime); align-self:flex-start;}
 
   /* --- barra negra CTA --- */
   .cta-bar{background:var(--black); padding:44px 24px;}
@@ -448,24 +461,30 @@
 
 <section class="cards">
   <div class="cards-grid">
-    <div class="card reveal">
+    <a class="card reveal" href="#galeria">
       <div class="card-img"><img src="img/gym-01.jpg" alt="Instalaciones GreenFit"></div>
-      <h3>Conocé las instalaciones</h3>
-      <p>Piso de goma, zona de arena, anillas, llantas y rack de pesas libres bajo el mismo techo.</p>
-      <a href="#galeria">Ver galería</a>
-    </div>
-    <div class="card reveal">
+      <div class="card-body">
+        <h3>Conocé las instalaciones</h3>
+        <p>Piso de goma, zona de arena, anillas, llantas y rack de pesas libres bajo el mismo techo.</p>
+        <span class="card-cta">Ver galería</span>
+      </div>
+    </a>
+    <a class="card reveal" href="#clases">
       <div class="card-img"><img src="img/gym-04.jpg" alt="Horarios GreenFit"></div>
-      <h3>Horarios de clases</h3>
-      <p>Aparatos, boxeo, kickstrike y crossfit, con horarios de mañana, tarde y noche todos los días.</p>
-      <a href="#clases">Ver horarios</a>
-    </div>
-    <div class="card reveal">
+      <div class="card-body">
+        <h3>Horarios de clases</h3>
+        <p>Aparatos, boxeo, kickstrike y crossfit, con horarios de mañana, tarde y noche todos los días.</p>
+        <span class="card-cta">Ver horarios</span>
+      </div>
+    </a>
+    <a class="card reveal" href="#contacto">
       <div class="card-img"><img src="img/gym-02.jpg" alt="Recepción GreenFit"></div>
-      <h3>Cómo llegar</h3>
-      <p>Videla Castillo 3131, Mendoza. Mapa interactivo y contacto directo por WhatsApp.</p>
-      <a href="#contacto">Ver ubicación</a>
-    </div>
+      <div class="card-body">
+        <h3>Cómo llegar</h3>
+        <p>Videla Castillo 3131, Mendoza. Mapa interactivo y contacto directo por WhatsApp.</p>
+        <span class="card-cta">Ver ubicación</span>
+      </div>
+    </a>
   </div>
 </section>
 
