@@ -1,0 +1,10 @@
+node_modules/
+
+# Playwright (suite E2E, agregada 2026-08-05)
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# Editor / OS
+.DS_Store

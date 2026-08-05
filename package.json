@@ -1,0 +1,13 @@
+{
+  "name": "greenfit-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Landing comercial de GreenFit -- HTML estatico sin build ni dependencias en produccion. Este package.json es SOLO para la suite E2E (Playwright), no para servir el sitio real.",
+  "scripts": {
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "serve": "^14.2.6"
+  }
+}

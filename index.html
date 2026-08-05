@@ -796,7 +796,7 @@
     try {
       const { data: disciplinas, error: errDisc } = await supabase
         .from('disciplines')
-        .select('id, name')
+        .select('id, name, kind')
         .eq('is_active', true)
         .order('name');
       if (errDisc) throw errDisc;
@@ -822,13 +822,22 @@
       const filas = [];
       for (const d of disciplinas) {
         const clasesDeEsta = clasesPorDisciplina.get(d.id);
-        // Una disciplina sin clases cargadas (ej: Aparatos, que es acceso
-        // libre sin turnos fijos) no tiene nada que mostrar acá -- se omite
-        // en vez de mostrar una fila vacía.
-        if (!clasesDeEsta || clasesDeEsta.length === 0) continue;
-
+        const tieneClases = clasesDeEsta && clasesDeEsta.length > 0;
+        // Antes, una disciplina sin clases cargadas (ej: Aparatos, que es
+        // acceso libre sin turnos fijos -- kind='membership') se OMITÍA acá
+        // por completo, quedando invisible en "Elegí tu ritmo" -- ahora
+        // TODA disciplina activa aparece: con sus horarios reales si tiene
+        // `classes` cargadas, o con un badge de Pase Libre si no (ya sea
+        // porque es de acceso libre por diseño, o porque todavía no se le
+        // cargó ningún horario desde el Admin).
         const diasUnion = new Set();
-        for (const c of clasesDeEsta) for (const dia of c.days_of_week ?? []) diasUnion.add(dia);
+        if (tieneClases) {
+          for (const c of clasesDeEsta) for (const dia of c.days_of_week ?? []) diasUnion.add(dia);
+        } else {
+          // Pase libre: sin restricción de día, se muestran los 7 chips
+          // activos ("todos los días").
+          for (const dia of ORDEN_SEMANA) diasUnion.add(dia);
+        }
 
         const chips = ORDEN_SEMANA.map((idx) => {
           const label = { 1: 'L', 2: 'Ma', 3: 'Mi', 4: 'J', 5: 'V', 6: 'S', 0: 'D' }[idx];
@@ -836,14 +845,19 @@
           return `<span class="day-chip${activo}">${label}</span>`;
         }).join('');
 
-        const bloques = agruparPorBloqueHorario(clasesDeEsta);
-        const lineasHorario = bloques
-          .map((b, i) => {
-            const rango = b.end ? `${formatearHora(b.start)} a ${formatearHora(b.end)} hs` : `${formatearHora(b.start)} hs`;
-            const estilo = i === 0 ? '' : ' style="margin-top:6px;"';
-            return `<div${estilo}>${formatearDias(b.dias)} <span style="color:var(--grey-text); font-weight:400;">— ${rango}</span></div>`;
-          })
-          .join('');
+        let columnaHorario;
+        if (tieneClases) {
+          const bloques = agruparPorBloqueHorario(clasesDeEsta);
+          columnaHorario = bloques
+            .map((b, i) => {
+              const rango = b.end ? `${formatearHora(b.start)} a ${formatearHora(b.end)} hs` : `${formatearHora(b.start)} hs`;
+              const estilo = i === 0 ? '' : ' style="margin-top:6px;"';
+              return `<div${estilo}>${formatearDias(b.dias)} <span style="color:var(--grey-text); font-weight:400;">— ${rango}</span></div>`;
+            })
+            .join('');
+        } else {
+          columnaHorario = 'Pase Libre / Horario de Gimnasio';
+        }
 
         const icono = ICONOS_POR_NOMBRE[normalizar(d.name)] ?? ICONO_GENERICO;
         filas.push(`
@@ -856,7 +870,7 @@
               </div>
               <div class="days-row">${chips}</div>
             </div>
-            <div class="class-times">${lineasHorario}</div>
+            <div class="class-times">${columnaHorario}</div>
           </div>
         `);
       }
