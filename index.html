@@ -232,11 +232,6 @@
   .class-row{transition:background-color 0.25s ease;}
   .class-row:hover{background-color:rgba(140,230,25,0.045);}
   .class-name-row{display:flex; align-items:center; gap:9px; flex-wrap:wrap;}
-  .status-badge{
-    display:inline-flex; align-items:center; gap:5px; background:rgba(140,230,25,0.12); color:var(--lime-dark);
-    font-size:10px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; padding:3px 9px; border-radius:999px;
-  }
-  .status-badge::before{content:''; width:6px; height:6px; border-radius:50%; background:var(--lime); flex-shrink:0;}
 
   /* --- galería: carrusel horizontal --- */
   .carousel-wrap{position:relative;}
@@ -764,10 +759,11 @@
     }
   }
 
-  // --- Horarios ("Elegí tu ritmo"): une `disciplines` activas con sus
-  // `classes` reales. Cada bloque de horario distinto (mismo start/end)
-  // agrupa los días en los que se repite -- así "CrossFit" con 3 turnos
-  // distintos muestra 3 líneas en vez de mezclarlas.
+  // --- Horarios ("Elegí tu ritmo"): une TODO el catálogo de `disciplines`
+  // (sin filtrar por is_active -- a propósito, ver el comentario dentro de
+  // hidratarHorarios) con sus `classes` reales. Cada bloque de horario
+  // distinto (mismo start/end) agrupa los días en los que se repite -- así
+  // "CrossFit" con 3 turnos distintos muestra 3 líneas en vez de mezclarlas.
   const DIAS_LARGOS = { 0: 'Dom', 1: 'Lun', 2: 'Mar', 3: 'Mié', 4: 'Jue', 5: 'Vie', 6: 'Sáb' };
   const ORDEN_SEMANA = [1, 2, 3, 4, 5, 6, 0]; // arranca en lunes, como el resto del sitio
 
@@ -813,10 +809,17 @@
     if (!lista || !vacio) return;
 
     try {
+      // Sin filtro de is_active a propósito: la Landing tiene que listar
+      // TODAS las disciplinas del catálogo, existan o no clases cargadas y
+      // estén o no "activas" en el Admin (is_active solo controla si se
+      // puede vender/reservar desde ahí y desde la PWA -- acá es
+      // exclusivamente informativo). Únicamente si la disciplina se borra
+      // de verdad de `disciplines` deja de aparecer. show_in_agenda
+      // (switch nuevo del Admin para la Agenda de RESERVAS de la PWA) ni
+      // siquiera se pide acá -- no aplica a esta página.
       const { data: disciplinas, error: errDisc } = await supabase
         .from('disciplines')
         .select('id, name, kind')
-        .eq('is_active', true)
         .order('name');
       if (errDisc) throw errDisc;
       if (!disciplinas || disciplinas.length === 0) {
@@ -825,11 +828,11 @@
         return;
       }
 
-      const idsActivos = disciplinas.map((d) => d.id);
+      const idsDisciplinas = disciplinas.map((d) => d.id);
       const { data: clases, error: errClases } = await supabase
         .from('classes')
         .select('discipline_id, days_of_week, start_time, end_time')
-        .in('discipline_id', idsActivos);
+        .in('discipline_id', idsDisciplinas);
       if (errClases) throw errClases;
 
       const clasesPorDisciplina = new Map();
@@ -845,10 +848,10 @@
         // Antes, una disciplina sin clases cargadas (ej: Aparatos, que es
         // acceso libre sin turnos fijos -- kind='membership') se OMITÍA acá
         // por completo, quedando invisible en "Elegí tu ritmo" -- ahora
-        // TODA disciplina activa aparece: con sus horarios reales si tiene
-        // `classes` cargadas, o con un badge de Pase Libre si no (ya sea
-        // porque es de acceso libre por diseño, o porque todavía no se le
-        // cargó ningún horario desde el Admin).
+        // TODA disciplina del catálogo aparece (sin importar is_active): con
+        // sus horarios reales si tiene `classes` cargadas, o con el texto de
+        // Pase Libre si no (ya sea porque es de acceso libre por diseño, o
+        // porque todavía no se le cargó ningún horario desde el Admin).
         const diasUnion = new Set();
         if (tieneClases) {
           for (const c of clasesDeEsta) for (const dia of c.days_of_week ?? []) diasUnion.add(dia);
@@ -885,7 +888,6 @@
             <div>
               <div class="class-name-row">
                 <div class="class-name">${escapeHtml(d.name)}</div>
-                <span class="status-badge">Activa</span>
               </div>
               <div class="days-row">${chips}</div>
             </div>

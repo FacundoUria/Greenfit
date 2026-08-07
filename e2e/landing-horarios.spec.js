@@ -3,19 +3,26 @@ import { mockSupabase } from './support/supabaseMock.js'
 import { tablasBase, DISCIPLINA_BOXEO, DISCIPLINA_APARATOS } from './support/fixtures.js'
 
 // Cubre el checklist de "Sincronización Landing vs. Admin": la sección
-// "Elegí tu ritmo" tiene que mostrar TODAS las disciplinas activas -- antes,
-// cualquiera sin filas en `classes` (ej. Aparatos, kind='membership', pase
-// libre por diseño) quedaba oculta por completo en vez de aparecer con un
-// badge de Pase Libre. También cubre que un horario recién editado desde el
-// Admin (una fila nueva/distinta en `classes`) se refleje acá -- dado que
-// esta landing y el Admin son dos apps separadas sin sesión compartida en
-// los tests (cada una con su propio backend mockeado), el contrato se
-// prueba así: PAGINA SUPABASE/e2e/disciplinas-horarios.spec.js ya prueba
-// que el Admin escribe bien en `classes`; este spec prueba que la landing
-// LEE y RENDERIZA bien esa misma tabla, con exactamente la forma que el
-// Admin la deja.
+// "Elegí tu ritmo" tiene que mostrar TODO el catálogo de disciplinas, sin
+// importar `is_active` -- antes, cualquiera sin filas en `classes` (ej.
+// Aparatos, kind='membership', pase libre por diseño) quedaba oculta por
+// completo en vez de aparecer con el texto de Pase Libre. También cubre que
+// un horario recién editado desde el Admin (una fila nueva/distinta en
+// `classes`) se refleje acá -- dado que esta landing y el Admin son dos
+// apps separadas sin sesión compartida en los tests (cada una con su propio
+// backend mockeado), el contrato se prueba así:
+// PAGINA SUPABASE/e2e/disciplinas-horarios.spec.js ya prueba que el Admin
+// escribe bien en `classes`; este spec prueba que la landing LEE y
+// RENDERIZA bien esa misma tabla, con exactamente la forma que el Admin la
+// deja.
+//
+// `is_active`/`show_in_agenda` son exclusivos del Admin y de la Agenda de
+// RESERVAS de la PWA -- acá NUNCA se filtra por ninguno de los dos, ni se
+// muestra ningún badge de estado ("Activa"): solo Ícono, Nombre, días en
+// verde y horario. Únicamente una disciplina borrada de verdad de
+// `disciplines` deja de listarse.
 test.describe('Landing -- "Elegí tu ritmo"', () => {
-  test('muestra las disciplinas con horarios reales Y Aparatos con el badge de Pase Libre (antes quedaba oculta)', async ({
+  test('muestra las disciplinas con horarios reales Y Aparatos con el badge de Pase Libre (antes quedaba oculta), sin ningún badge de estado', async ({
     page,
   }) => {
     await mockSupabase(page, { tables: tablasBase() })
@@ -39,6 +46,28 @@ test.describe('Landing -- "Elegí tu ritmo"', () => {
     // (se alterna vía style.display, no se desmonta) -- toBeHidden(), no
     // toHaveCount(0), para chequear que de verdad está oculto.
     await expect(page.getByText('Todavía no hay horarios cargados.')).toBeHidden()
+
+    // UI limpia: sin el badge "• Activa" al lado de ningún nombre.
+    await expect(seccion.getByText('Activa', { exact: true })).toHaveCount(0)
+  })
+
+  // Antes, is_active=false ocultaba la disciplina de acá (mismo filtro que
+  // usa el Admin/la PWA para vender/reservar) -- ahora esta página es
+  // puramente informativa: is_active NO decide nada acá, solo importa que
+  // la disciplina exista en el catálogo. Únicamente eliminarla de verdad de
+  // `disciplines` la saca de esta lista.
+  test('una disciplina con is_active=false sigue mostrándose igual (acá NO se filtra por is_active)', async ({ page }) => {
+    const tablas = tablasBase()
+    tablas.disciplines = tablas.disciplines.map((d) =>
+      d.id === DISCIPLINA_APARATOS.id ? { ...d, is_active: false } : d,
+    )
+
+    await mockSupabase(page, { tables: tablas })
+    await page.goto('/')
+
+    const seccion = page.locator('#scheduleList')
+    await expect(seccion.getByText('Aparatos', { exact: true })).toBeVisible()
+    await expect(seccion.getByText('Pase Libre / Horario de Gimnasio')).toBeVisible()
   })
 
   test('un horario editado desde el Admin (nueva franja en `classes`) se refleja acá', async ({ page }) => {
