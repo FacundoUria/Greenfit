@@ -21,6 +21,21 @@ import { tablasBase, DISCIPLINA_BOXEO, DISCIPLINA_APARATOS } from './support/fix
 // muestra ningún badge de estado ("Activa"): solo Ícono, Nombre, días en
 // verde y horario. Únicamente una disciplina borrada de verdad de
 // `disciplines` deja de listarse.
+//
+// LÍMITE IMPORTANTE de esta suite: el mock (supabaseMock.js) es una capa
+// REST falsa en memoria -- devuelve exactamente lo que haya en la fixture,
+// sin ningún Row Level Security real de por medio. El bug real reportado
+// en producción (Aparatos con is_active=false invisible en la Landing
+// pese a que este archivo YA NO filtra por is_active del lado del
+// cliente) resultó ser una policy de RLS en `disciplines` que le escondía
+// esas filas al rol anon ANTES de que la respuesta llegara al cliente --
+// ESTOS tests prueban que el CÓDIGO de la Landing es is_active/
+// show_in_agenda-agnóstico (ya lo era, y sigue siéndolo), pero NO pueden
+// detectar ni prevenir un problema de RLS del lado de la base (ver
+// supabase_migration_disciplines_select_publico.sql, en PAGINA SUPABASE,
+// para el fix real de ESE problema -- ninguna prueba automatizada de este
+// repo lo cubre, hace falta correr esa migración y confirmarlo contra la
+// base real).
 test.describe('Landing -- "Elegí tu ritmo"', () => {
   test('muestra las disciplinas con horarios reales Y Aparatos con el badge de Pase Libre (antes quedaba oculta), sin ningún badge de estado', async ({
     page,
@@ -60,6 +75,44 @@ test.describe('Landing -- "Elegí tu ritmo"', () => {
     const tablas = tablasBase()
     tablas.disciplines = tablas.disciplines.map((d) =>
       d.id === DISCIPLINA_APARATOS.id ? { ...d, is_active: false } : d,
+    )
+
+    await mockSupabase(page, { tables: tablas })
+    await page.goto('/')
+
+    const seccion = page.locator('#scheduleList')
+    await expect(seccion.getByText('Aparatos', { exact: true })).toBeVisible()
+    await expect(seccion.getByText('Pase Libre / Horario de Gimnasio')).toBeVisible()
+  })
+
+  // show_in_agenda=false es el switch nuevo de "Editar Disciplina" para
+  // sacar a Aparatos de la Agenda de RESERVAS de la PWA -- no tiene que
+  // afectar en nada a esta página informativa.
+  test('una disciplina con show_in_agenda=false también sigue mostrándose igual (acá tampoco se filtra por show_in_agenda)', async ({
+    page,
+  }) => {
+    const tablas = tablasBase()
+    tablas.disciplines = tablas.disciplines.map((d) =>
+      d.id === DISCIPLINA_APARATOS.id ? { ...d, show_in_agenda: false } : d,
+    )
+
+    await mockSupabase(page, { tables: tablas })
+    await page.goto('/')
+
+    const seccion = page.locator('#scheduleList')
+    await expect(seccion.getByText('Aparatos', { exact: true })).toBeVisible()
+    await expect(seccion.getByText('Pase Libre / Horario de Gimnasio')).toBeVisible()
+  })
+
+  // El escenario real reportado: Aparatos con LOS DOS flags apagados a la
+  // vez (inactiva Y fuera de la Agenda) -- el caso más restrictivo posible
+  // del lado del Admin, y aun así tiene que aparecer igual acá.
+  test('una disciplina con is_active=false Y show_in_agenda=false (el caso más restrictivo) sigue apareciendo', async ({
+    page,
+  }) => {
+    const tablas = tablasBase()
+    tablas.disciplines = tablas.disciplines.map((d) =>
+      d.id === DISCIPLINA_APARATOS.id ? { ...d, is_active: false, show_in_agenda: false } : d,
     )
 
     await mockSupabase(page, { tables: tablas })
