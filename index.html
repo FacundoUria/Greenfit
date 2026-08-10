@@ -792,6 +792,19 @@
       .join(' · ');
   }
 
+  // Aparatos / Musculación: horario FIJO del gimnasio, no depende de
+  // `classes` -- antes se armaba dinámicamente a partir de las franjas
+  // cargadas en el Admin (pensado para turnos reales de clase), y para un
+  // pase de acceso libre eso podía terminar mostrando una franja mal
+  // cargada o incompleta (ej. "08:00 a 00:00 hs" si a una fila le faltaba
+  // el horario real de cierre). El horario de apertura del gimnasio es un
+  // dato fijo del negocio, no algo que varíe clase a clase -- se hardcodea
+  // acá en vez de depender de lo que haya (o no) en `classes`.
+  const HORARIO_ESTATICO_APARATOS = `
+    <div>Lunes a Viernes <span style="color:var(--grey-text); font-weight:400;">— 08:00 a 12:00 hs | 15:00 a 22:00 hs</span></div>
+    <div style="margin-top:6px;">Sábados <span style="color:var(--grey-text); font-weight:400;">— 10:00 a 13:00 hs</span></div>
+  `;
+
   function agruparPorBloqueHorario(clases) {
     const bloques = new Map();
     for (const c of clases) {
@@ -843,6 +856,7 @@
 
       const filas = [];
       for (const d of disciplinas) {
+        const esAparatos = normalizar(d.name) === 'aparatos';
         const clasesDeEsta = clasesPorDisciplina.get(d.id);
         const tieneClases = clasesDeEsta && clasesDeEsta.length > 0;
         // Antes, una disciplina sin clases cargadas (ej: Aparatos, que es
@@ -853,7 +867,11 @@
         // Pase Libre si no (ya sea porque es de acceso libre por diseño, o
         // porque todavía no se le cargó ningún horario desde el Admin).
         const diasUnion = new Set();
-        if (tieneClases) {
+        if (esAparatos) {
+          // Mismo horario fijo que HORARIO_ESTATICO_APARATOS: de lunes a
+          // sábado (domingo cerrado) -- no depende de `classes` para nada.
+          for (const dia of [1, 2, 3, 4, 5, 6]) diasUnion.add(dia);
+        } else if (tieneClases) {
           for (const c of clasesDeEsta) for (const dia of c.days_of_week ?? []) diasUnion.add(dia);
         } else {
           // Pase libre: sin restricción de día, se muestran los 7 chips
@@ -868,7 +886,9 @@
         }).join('');
 
         let columnaHorario;
-        if (tieneClases) {
+        if (esAparatos) {
+          columnaHorario = HORARIO_ESTATICO_APARATOS;
+        } else if (tieneClases) {
           const bloques = agruparPorBloqueHorario(clasesDeEsta);
           columnaHorario = bloques
             .map((b, i) => {

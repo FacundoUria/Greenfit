@@ -6,15 +6,14 @@ import { tablasBase, DISCIPLINA_BOXEO, DISCIPLINA_APARATOS } from './support/fix
 // "Elegí tu ritmo" tiene que mostrar TODO el catálogo de disciplinas, sin
 // importar `is_active` -- antes, cualquiera sin filas en `classes` (ej.
 // Aparatos, kind='membership', pase libre por diseño) quedaba oculta por
-// completo en vez de aparecer con el texto de Pase Libre. También cubre que
-// un horario recién editado desde el Admin (una fila nueva/distinta en
-// `classes`) se refleje acá -- dado que esta landing y el Admin son dos
-// apps separadas sin sesión compartida en los tests (cada una con su propio
-// backend mockeado), el contrato se prueba así:
-// PAGINA SUPABASE/e2e/disciplinas-horarios.spec.js ya prueba que el Admin
-// escribe bien en `classes`; este spec prueba que la landing LEE y
-// RENDERIZA bien esa misma tabla, con exactamente la forma que el Admin la
-// deja.
+// completo en vez de aparecer. También cubre que un horario recién editado
+// desde el Admin (una fila nueva/distinta en `classes`) se refleje acá --
+// dado que esta landing y el Admin son dos apps separadas sin sesión
+// compartida en los tests (cada una con su propio backend mockeado), el
+// contrato se prueba así: PAGINA SUPABASE/e2e/disciplinas-horarios.spec.js
+// ya prueba que el Admin escribe bien en `classes`; este spec prueba que la
+// landing LEE y RENDERIZA bien esa misma tabla, con exactamente la forma
+// que el Admin la deja -- EXCEPTO Aparatos (ver más abajo).
 //
 // `is_active`/`show_in_agenda` son exclusivos del Admin y de la Agenda de
 // RESERVAS de la PWA -- acá NUNCA se filtra por ninguno de los dos, ni se
@@ -36,8 +35,26 @@ import { tablasBase, DISCIPLINA_BOXEO, DISCIPLINA_APARATOS } from './support/fix
 // para el fix real de ESE problema -- ninguna prueba automatizada de este
 // repo lo cubre, hace falta correr esa migración y confirmarlo contra la
 // base real).
+
+// Aparatos / Musculación: horario FIJO del negocio (mismo texto en TODOS
+// los tests de acá, sin importar qué haya -- o no haya -- cargado en
+// `classes` para esa disciplina). Antes se armaba dinámicamente a partir de
+// las franjas de `classes`, pensadas para turnos reales de clase, no para un
+// horario de apertura de gimnasio -- eso podía terminar mostrando una franja
+// mal cargada o incompleta (ej. "08:00 a 00:00 hs" si a una fila le faltaba
+// el horario real de cierre).
+const HORARIO_APARATOS_LINEA_1 = 'Lunes a Viernes — 08:00 a 12:00 hs | 15:00 a 22:00 hs'
+const HORARIO_APARATOS_LINEA_2 = 'Sábados — 10:00 a 13:00 hs'
+
+async function expectAparatosConHorarioEstatico(seccion) {
+  await expect(seccion.getByText('Aparatos', { exact: true })).toBeVisible()
+  await expect(seccion.getByText(HORARIO_APARATOS_LINEA_1)).toBeVisible()
+  await expect(seccion.getByText(HORARIO_APARATOS_LINEA_2)).toBeVisible()
+  await expect(seccion.getByText('Pase Libre / Horario de Gimnasio')).toHaveCount(0)
+}
+
 test.describe('Landing -- "Elegí tu ritmo"', () => {
-  test('muestra las disciplinas con horarios reales Y Aparatos con el badge de Pase Libre (antes quedaba oculta), sin ningún badge de estado', async ({
+  test('muestra las disciplinas con horarios reales Y Aparatos con el horario estático del gimnasio, sin ningún badge de estado', async ({
     page,
   }) => {
     await mockSupabase(page, { tables: tablasBase() })
@@ -53,9 +70,8 @@ test.describe('Landing -- "Elegí tu ritmo"', () => {
     await expect(seccion.getByText('Mar · Jue — 20:00 a 21:00 hs')).toBeVisible()
 
     // El bug real: Aparatos (sin filas en `classes`) antes se omitía por
-    // completo -- ahora aparece con el badge de Pase Libre.
-    await expect(seccion.getByText('Aparatos', { exact: true })).toBeVisible()
-    await expect(seccion.getByText('Pase Libre / Horario de Gimnasio')).toBeVisible()
+    // completo -- ahora aparece siempre con el horario fijo del gimnasio.
+    await expectAparatosConHorarioEstatico(seccion)
 
     // El mensaje de "todavía no hay horarios" existe siempre en el DOM
     // (se alterna vía style.display, no se desmonta) -- toBeHidden(), no
@@ -80,9 +96,7 @@ test.describe('Landing -- "Elegí tu ritmo"', () => {
     await mockSupabase(page, { tables: tablas })
     await page.goto('/')
 
-    const seccion = page.locator('#scheduleList')
-    await expect(seccion.getByText('Aparatos', { exact: true })).toBeVisible()
-    await expect(seccion.getByText('Pase Libre / Horario de Gimnasio')).toBeVisible()
+    await expectAparatosConHorarioEstatico(page.locator('#scheduleList'))
   })
 
   // show_in_agenda=false es el switch nuevo de "Editar Disciplina" para
@@ -99,9 +113,7 @@ test.describe('Landing -- "Elegí tu ritmo"', () => {
     await mockSupabase(page, { tables: tablas })
     await page.goto('/')
 
-    const seccion = page.locator('#scheduleList')
-    await expect(seccion.getByText('Aparatos', { exact: true })).toBeVisible()
-    await expect(seccion.getByText('Pase Libre / Horario de Gimnasio')).toBeVisible()
+    await expectAparatosConHorarioEstatico(page.locator('#scheduleList'))
   })
 
   // El escenario real reportado: Aparatos con LOS DOS flags apagados a la
@@ -118,9 +130,7 @@ test.describe('Landing -- "Elegí tu ritmo"', () => {
     await mockSupabase(page, { tables: tablas })
     await page.goto('/')
 
-    const seccion = page.locator('#scheduleList')
-    await expect(seccion.getByText('Aparatos', { exact: true })).toBeVisible()
-    await expect(seccion.getByText('Pase Libre / Horario de Gimnasio')).toBeVisible()
+    await expectAparatosConHorarioEstatico(page.locator('#scheduleList'))
   })
 
   test('un horario editado desde el Admin (nueva franja en `classes`) se refleja acá', async ({ page }) => {
@@ -144,28 +154,28 @@ test.describe('Landing -- "Elegí tu ritmo"', () => {
     await expect(seccion.getByText('20:00 a 21:00', { exact: false })).toHaveCount(0)
   })
 
-  // Antes, "Editar Disciplina" en el Admin bloqueaba por completo la carga
-  // de horarios para kind=membership (Aparatos) -- ahora se puede cargar un
-  // horario real de gimnasio ahí (ver PAGINA SUPABASE/e2e/disciplinas-horarios.spec.js),
-  // y esta landing tiene que mostrar ESE horario real en vez de caer siempre
-  // al fallback de "Pase Libre / Horario de Gimnasio".
-  test('Aparatos con un horario real cargado desde el Admin lo muestra en vez del fallback de Pase Libre', async ({
+  // Regresión del bug real reportado: una franja mal cargada para Aparatos
+  // desde el Admin (ej. sin horario de cierre real, "00:00" default) se
+  // veía en la Landing como "08:00 a 00:00 hs" -- confuso para cualquiera
+  // que la lea. Aparatos ahora ignora por completo lo que haya en `classes`
+  // y siempre muestra el horario fijo del gimnasio, así que ni una fila
+  // realmente rota puede volver a filtrarse a la vista pública.
+  test('Aparatos ignora cualquier franja cargada en `classes` (incluida una mal cargada) y siempre muestra el horario fijo del gimnasio', async ({
     page,
   }) => {
     const tablas = tablasBase()
     tablas.classes.push({
       discipline_id: DISCIPLINA_APARATOS.id,
       days_of_week: [1, 2, 3, 4, 5],
-      start_time: '07:00:00',
-      end_time: '22:00:00',
+      start_time: '08:00:00',
+      end_time: '00:00:00', // la franja mal cargada del bug real reportado
     })
 
     await mockSupabase(page, { tables: tablas })
     await page.goto('/')
 
     const seccion = page.locator('#scheduleList')
-    await expect(seccion.getByText('Aparatos', { exact: true })).toBeVisible()
-    await expect(seccion.getByText('Lun a Vie — 07:00 a 22:00 hs')).toBeVisible()
-    await expect(seccion.getByText('Pase Libre / Horario de Gimnasio')).toHaveCount(0)
+    await expectAparatosConHorarioEstatico(seccion)
+    await expect(seccion.getByText('08:00 a 00:00', { exact: false })).toHaveCount(0)
   })
 })
