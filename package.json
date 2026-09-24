@@ -2,12 +2,14 @@
   "name": "greenfit-site",
   "version": "1.0.0",
   "private": true,
-  "description": "Landing comercial de GreenFit -- HTML estatico sin build ni dependencias en produccion. Este package.json es SOLO para la suite E2E (Playwright), no para servir el sitio real.",
+  "description": "Landing comercial de GreenFit -- HTML estatico. En produccion no hay build: css/tailwind.css es un archivo COMPILADO y commiteado (npm run build:css, solo si se cambian clases de Tailwind en index.html o tailwind.config.js). Playwright es solo para la suite E2E.",
   "scripts": {
+    "build:css": "tailwindcss -c tailwind.config.js -i css/tailwind.input.css -o css/tailwind.css --minify",
     "test:e2e": "playwright test"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
-    "serve": "^14.2.6"
+    "serve": "^14.2.6",
+    "tailwindcss": "3.4"
   }
 }

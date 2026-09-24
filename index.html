@@ -1,606 +1,451 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/jpeg" href="img/favicon.jpg">
 <title>GreenFit — Tu Box de Entrenamiento</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Work+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap');
-
-  :root{
-    --lime:#8CE619;
-    --lime-dark:#3D6B0E;
-    --black:#0B0C08;
-    --grey-bg:#F1F0EA;
-    --grey-text:#5B5D50;
-    --white:#FFFFFF;
-  }
-  *{margin:0;padding:0;box-sizing:border-box;}
-  html{scroll-behavior:smooth; overflow-x:hidden;}
-  body{background:var(--white); color:var(--black); font-family:'Work Sans',sans-serif; overflow-x:hidden; max-width:100vw;}
-  .display{font-family:'Archivo Black', sans-serif; text-transform:uppercase; line-height:1.05;}
-  .mono{font-family:'JetBrains Mono',monospace;}
-
-  /* --- animaciones al scroll: fade-up + reveal escalonado (IntersectionObserver,
-     ver script). Liviano a propósito -- solo opacity/transform, sin JS de
-     terceros -- para no pegarle al rendimiento en mobile. Va cerca del reset,
-     arriba de todo, a propósito: es un utility genérico y así cualquier regla
-     de hover/interacción más específica de un componente (definida más abajo)
-     gana el empate de especificidad en `transform` en vez de perderlo contra
-     `.reveal.is-visible`. --- */
-  .reveal{opacity:0; transform:translateY(22px); transition:opacity 0.6s ease, transform 0.6s ease; transition-delay:calc(var(--stagger, 0) * 70ms);}
-  .reveal.is-visible{opacity:1; transform:translateY(0);}
-  @media (prefers-reduced-motion: reduce){
-    .reveal{opacity:1; transform:none; transition:none;}
-  }
-
-  /* --- barra superior de anuncio, como el ticket banner de crossfit --- */
-  .announce{background:var(--lime); color:var(--black); text-align:center; padding:10px 16px; font-size:13px; font-weight:700;}
-  .announce a{color:var(--black); text-decoration:underline; font-weight:700; margin-left:6px;}
-
-  /* --- header --- */
-  /* Antes tenía un border-bottom seco -- lo reemplazamos por una sombra
-     difusa (blur amplio, opacidad muy baja) para dar sensación de relieve
-     sin cortar el degradé continuo entre secciones. */
-  header{background:var(--black); box-shadow:0 16px 30px -22px rgba(0,0,0,0.6);}
-  .nav-inner{max-width:1280px;margin:0 auto;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;}
-  .logo{color:var(--white); font-size:22px; letter-spacing:0.5px;}
-  .logo span{color:var(--lime);}
-  nav ul{list-style:none;display:flex;gap:34px;}
-  nav a{color:rgba(255,255,255,0.85);text-decoration:none;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px; display:flex; align-items:center; gap:4px;}
-  nav a:hover{color:var(--lime);}
-  .header-right{display:flex; align-items:center; gap:12px; flex-shrink:0;}
-  .pill{
-    display:inline-flex; align-items:center; gap:8px; padding:11px 20px; border-radius:999px; white-space:nowrap; flex-shrink:0;
-    font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:0.3px; text-decoration:none; border:1.5px solid rgba(255,255,255,0.4); color:var(--white);
-    transition:border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
-  }
-  .pill:hover{border-color:var(--lime); color:var(--lime);}
-  .pill:active{transform:scale(0.96);}
-  .pill svg{width:16px;height:16px;flex-shrink:0;}
-  .pill-solid{background:var(--lime); color:var(--black); border-color:var(--lime);}
-  .app-label-short{display:none;}
-  .pill-solid:hover{background:#7bcf14; color:var(--black); box-shadow:0 6px 18px -4px rgba(140,230,25,0.5);}
-  .icon-btn{
-    width:40px;height:40px;border-radius:50%; display:flex; align-items:center; justify-content:center;
-    border:1.5px solid rgba(255,255,255,0.4); color:var(--white); flex-shrink:0;
-    transition:border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
-  }
-  .icon-btn svg{width:19px;height:19px;}
-  .icon-btn:hover{border-color:var(--lime); color:var(--lime); transform:translateY(-2px);}
-  .icon-btn:active{transform:translateY(0) scale(0.94);}
-
-  /* --- hero --- */
-  /* La foto se va oscureciendo sola hacia abajo hasta terminar en el mismo
-     negro exacto de "Todo bajo un mismo techo" (var(--black), no un
-     #000000 suelto) -- así el borde inferior deja de ser un corte recto y
-     pasa a ser la propia imagen disolviéndose en la sección siguiente. Capa
-     a pantalla completa (no una franja finita), para que la transición sea
-     gradual y no se note como un parche pegado. */
-  .hero{
-    position:relative; overflow:hidden; min-height:88vh; display:flex; align-items:center;
-    background-image:
-      linear-gradient(to bottom, transparent 70%, var(--black) 100%),
-      linear-gradient(90deg, rgba(11,12,8,0.92) 0%, rgba(11,12,8,0.55) 45%, rgba(11,12,8,0.2) 100%),
-      url('img/gym-03.jpg');
-    background-size: 100% 100%, cover, cover;
-    background-position: center, center, center;
-    background-repeat: no-repeat, no-repeat, no-repeat;
-  }
-  .hero-inner{position:relative; z-index:1; max-width:1280px; margin:0 auto; padding:60px 24px; width:100%;}
-  .hero h1{color:var(--white); font-size:clamp(40px,6vw,64px); max-width:680px;}
-  .hero h1 .fit{color:var(--lime);}
-  .hero p{color:rgba(255,255,255,0.85); max-width:520px; margin:22px 0 30px; font-size:16px; line-height:1.6;}
-  .hero-card{
-    margin-top:36px; max-width:420px; background:rgba(11,12,8,0.7); border:1px solid rgba(255,255,255,0.15);
-    border-radius:6px; padding:20px 22px; display:flex; align-items:center; gap:16px; backdrop-filter:blur(4px);
-  }
-  .hero-card svg{width:30px;height:30px; flex-shrink:0;}
-  .hero-card b{display:block; color:var(--white); font-size:14px;}
-  .hero-card span{color:rgba(255,255,255,0.65); font-size:13px;}
-  .hero-card a{color:var(--lime); font-size:12px; font-weight:700; text-decoration:none; text-transform:uppercase; margin-left:auto;}
-
-  /* --- sección oscura split: headline + mosaico de disciplinas --- */
-  /* Conecta directo con el hero (foto oscura arriba de todo, sin sección
-     intermedia) -- ambos son tonos oscuros, así que no hace falta ningún
-     degradé para disimular la costura. */
-  .split-dark{position:relative; overflow:hidden; background:var(--black); padding:110px 24px;}
-  .split-inner{position:relative; z-index:1; max-width:1160px; margin:0 auto; display:grid; grid-template-columns:1.1fr 0.9fr; gap:60px; align-items:center;}
-  .split-dark h2{color:var(--white); font-size:clamp(30px,4.5vw,46px); margin-bottom:20px;}
-  .split-dark p{color:rgba(255,255,255,0.65); font-size:15px; line-height:1.7; margin-bottom:28px; max-width:460px;}
-  /* auto-fit en vez de 2 columnas fijas -- así la grilla se acomoda sola
-     (más o menos columnas según el ancho disponible) sin importar cuántas
-     disciplinas activas haya cargadas en un momento dado. */
-  .discipline-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:14px;}
-  /* "Mazo de cartas": cada tarjeta arranca con una leve rotación alternada
-     (ciclo de a 3, así funciona sea cual sea la cantidad de disciplinas
-     activas) y se endereza + levanta un poco al pasar el mouse. Es solo
-     `transform`, nunca afecta el tamaño de fila del grid -- cero riesgo de
-     que una tarjeta se superponga a la de al lado. Sombra neutra (negro),
-     sin ningún tinte de color -- nada de "brillo". */
-  .discipline-card{
-    background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:24px; text-align:center;
-    transform:rotate(var(--tilt, 0deg));
-    transition:transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
-  }
-  .discipline-card:nth-child(3n+1){--tilt:-1.4deg;}
-  .discipline-card:nth-child(3n+2){--tilt:1deg;}
-  .discipline-card:nth-child(3n+3){--tilt:-0.6deg;}
-  .discipline-card:hover{
-    transform:rotate(0deg) translateY(-4px); border-color:rgba(140,230,25,0.4);
-    box-shadow:0 14px 26px -10px rgba(0,0,0,0.5);
-    position:relative; z-index:2;
-  }
-  .discipline-card svg{width:30px;height:30px; margin-bottom:12px; transition:transform 0.25s ease;}
-  .discipline-card:hover svg{transform:scale(1.08);}
-  .discipline-card b{display:block; color:var(--white); font-size:14px; text-transform:uppercase; letter-spacing:0.5px;}
-  .discipline-empty-msg{color:rgba(255,255,255,0.55); font-size:14px; text-align:center; padding:10px 4px;}
-  /* mismo mensaje pero sobre fondo claro (sección de horarios) */
-  #scheduleEmptyMsg{color:var(--grey-text);}
-
-  /* --- cards de navegación tipo crossfit (foto + título + texto + link) --- */
-  /* Funde el negro de .split-dark hacia este blanco -- fundido chico (60px,
-     no 110) para no repetir el mismo ahogo que en .split-dark. */
-  .cards{
-    padding:80px 24px;
-    background-color:var(--white);
-    background-image:linear-gradient(to bottom, var(--black), transparent);
-    background-position:top; background-size:100% 60px; background-repeat:no-repeat;
-  }
-  .cards-grid{max-width:1160px; margin:0 auto; display:grid; grid-template-columns:repeat(3,1fr); gap:28px;}
-  /* Mismo "mazo de cartas" que las tarjetas de disciplina: leve rotación
-     alternada en reposo, se endereza + levanta al hover. Solo `transform`,
-     no mueve el layout. En mobile (1 columna) se desactiva la rotación --
-     apiladas verticalmente, tilteadas se ven desprolijas, no elegantes.
-     Toda la tarjeta es un <a> (full card click) -- reseteamos los estilos
-     de link por default y la armamos en flex-column para poder anclar el
-     CTA abajo con margin-top:auto sin importar cuánto texto tenga cada una. */
-  .card{
-    display:flex;
-    flex-direction:column;
-    color:inherit;
-    text-decoration:none;
-    cursor:pointer;
-    background-color:var(--white);
-    transform:rotate(var(--tilt, 0deg));
-    transition:transform 0.3s ease, box-shadow 0.3s ease;
-    border-radius:8px;
-  }
-  .card:nth-child(3n+1){--tilt:-1.5deg;}
-  .card:nth-child(3n+2){--tilt:1.1deg;}
-  .card:nth-child(3n+3){--tilt:-0.8deg;}
-  .card:hover{
-    transform:rotate(0deg) translateY(-6px);
-    box-shadow:0 20px 34px -14px rgba(0,0,0,0.3);
-    position:relative; z-index:2;
-  }
-  .card-img{aspect-ratio:16/10; border-radius:6px; overflow:hidden;}
-  .card-img img{width:100%;height:100%;object-fit:cover; display:block;}
-  /* Bloque de contenido debajo de la imagen: la imagen queda a sangre
-     (edge-to-edge), el padding va acá para separar título/texto/CTA de los
-     bordes. flex-column + flex:1 para que el CTA pueda pegarse abajo. */
-  .card-body{padding:24px; display:flex; flex-direction:column; flex:1;}
-  .card h3{font-size:19px; font-weight:800; margin-bottom:10px;}
-  .card p{color:var(--grey-text); font-size:14px; line-height:1.6; margin-bottom:16px;}
-  .card-cta{margin-top:auto; padding-top:4px; color:var(--black); font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid var(--lime); align-self:flex-start;}
-
-  /* --- barra negra CTA --- */
-  .cta-bar{background:var(--black); padding:44px 24px;}
-  .cta-bar-inner{max-width:1160px;margin:0 auto; display:flex; justify-content:space-between; align-items:center; gap:30px; flex-wrap:wrap;}
-  .cta-bar h2{color:var(--white); font-size:clamp(20px,3vw,30px); max-width:600px;}
-
-  /* --- foto full con texto centrado --- */
-  /* Mismo criterio que .hero, pero acotado a una franja fija de 50px en cada
-     punta (no un % de la altura -- en una sección de 70vh eso terminaba
-     siendo una neblina enorme tapando media foto). Solo ablanda el borde
-     justo donde toca el blanco de arriba/abajo; el centro de la foto queda
-     limpio y nítido detrás del texto. */
-  .photo-statement{
-    position:relative; overflow:hidden; min-height:70vh; display:flex; align-items:center; justify-content:center; text-align:center;
-    background-image:
-      linear-gradient(to bottom, var(--white), transparent),
-      linear-gradient(to top, var(--white), transparent),
-      linear-gradient(0deg, rgba(11,12,8,0.85), rgba(11,12,8,0.5)),
-      url('img/clase-grupal.jpg');
-    background-position: top, bottom, center, center;
-    background-size: 100% 50px, 100% 50px, cover, cover;
-    background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
-  }
-  .photo-statement .inner{position:relative; z-index:1; max-width:640px; padding:24px;}
-  .photo-statement .eyebrow{color:var(--white); font-size:13px; letter-spacing:1px; margin-bottom:14px;}
-  .photo-statement h2{color:var(--white); font-size:clamp(32px,6vw,58px); margin-bottom:20px;}
-  .photo-statement p{color:rgba(255,255,255,0.8); font-size:15px; line-height:1.6; margin-bottom:30px;}
-
-  section{padding:70px 24px;}
-  .section-inner{max-width:1160px;margin:0 auto;}
-  .section-head{margin-bottom:36px;}
-  .section-head .eyebrow{color:var(--lime-dark); font-size:12px; letter-spacing:2px; margin-bottom:8px; font-weight:700;}
-  .section-head h2{font-size:clamp(28px,4vw,42px);}
-
-  /* --- horarios --- */
-  .class-list{display:flex;flex-direction:column;}
-  .class-row{display:grid; grid-template-columns:70px 1fr 1fr; gap:20px; align-items:center; padding:26px 0; border-bottom:1px solid rgba(0,0,0,0.08);}
-  .class-icon{width:56px;height:56px;border-radius:50%;border:2px solid var(--lime);display:flex;align-items:center;justify-content:center;}
-  .class-icon svg{width:26px;height:26px;}
-  .class-name{font-size:22px; font-weight:800;}
-  .class-times{text-align:right; font-size:16px; font-weight:600;}
-  .class-times .new{display:inline-block; background:var(--lime); color:var(--black); font-size:10px; padding:3px 8px; border-radius:999px; margin-top:6px; font-weight:800; letter-spacing:0.5px;}
-  .days-row{display:flex; gap:5px; margin-top:8px;}
-  .day-chip{width:28px;height:24px;border-radius:5px; display:flex;align-items:center;justify-content:center; font-family:'JetBrains Mono'; font-size:10px; font-weight:700; border:1px solid rgba(0,0,0,0.15); color:rgba(0,0,0,0.3); transition:background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;}
-  .day-chip.active{background:var(--lime); color:var(--black); border-color:var(--lime);}
-  .class-row{transition:background-color 0.25s ease;}
-  .class-row:hover{background-color:rgba(140,230,25,0.045);}
-  .class-name-row{display:flex; align-items:center; gap:9px; flex-wrap:wrap;}
-
-  /* --- galería: carrusel horizontal --- */
-  .carousel-wrap{position:relative;}
-  .carousel-track{
-    display:flex; gap:0; overflow-x:auto; scroll-snap-type:x mandatory; scroll-behavior:smooth;
-    -ms-overflow-style:none; scrollbar-width:none;
-  }
-  .carousel-track::-webkit-scrollbar{display:none;}
-  .g-item{overflow:hidden; position:relative; flex:0 0 260px; aspect-ratio:3/4; background:var(--grey-bg); scroll-snap-align:start;}
-  .g-item img, .g-item video{width:100%; height:100%; object-fit:cover; display:block;}
-  .g-item .tag-badge{position:absolute; top:10px; left:10px; background:rgba(11,12,8,0.75); color:var(--lime); font-family:'JetBrains Mono'; font-size:10px; padding:4px 8px; border-radius:3px; letter-spacing:0.5px; text-transform:uppercase;}
-  .g-item.wide{flex-basis:460px;}
-  .car-btn{
-    position:absolute; top:50%; transform:translateY(-50%); z-index:5;
-    width:44px;height:44px;border-radius:50%; background:var(--black); color:var(--white); border:none;
-    display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:20px;
-    box-shadow:0 4px 14px rgba(0,0,0,0.3);
-  }
-  .car-btn:hover{background:var(--lime-dark);}
-  .car-prev{left:6px;}
-  .car-next{right:6px;}
-
-  @media(max-width:900px){
-    .nav-inner{padding:14px 16px;}
-    .logo{font-size:17px;}
-    .header-right{gap:8px;}
-    .header-right a.pill:not(.pill-solid):not(.staff-link){display:none;}
-    .header-right .pill{padding:9px 14px; font-size:11px;}
-    .header-right .pill-solid{padding:9px 12px; gap:6px;}
-    .header-right .staff-link{width:38px;height:38px;padding:0;border-radius:50%;justify-content:center;gap:0;}
-    .header-right .staff-link .staff-label{display:none;}
-  }
-
-  @media(max-width:400px){
-    .logo{font-size:14px;}
-    .header-right{gap:5px;}
-    .icon-btn{width:32px;height:32px;}
-    .icon-btn svg{width:15px;height:15px;}
-    .header-right .pill-solid{padding:7px 9px; font-size:9px; gap:5px;}
-    .header-right .pill svg{width:13px;height:13px;}
-    .header-right .staff-link{width:32px;height:32px;}
-  }
-
-  @media(max-width:340px){
-    .header-right .app-label-full{display:none;}
-    .header-right .app-label-short{display:inline;}
-  }
-
-  @media(max-width:900px){
-    .g-item{flex-basis:200px;}
-    .g-item.wide{flex-basis:340px;}
-    .car-btn{width:36px;height:36px;font-size:16px;}
-  }
-
-  /* --- botón flotante de WhatsApp: único punto de contacto repetido junto
-     con el ícono del header, siempre visible mientras se scrollea --- */
-  .wa-float{
-    position:fixed; right:20px; bottom:20px; z-index:40;
-    width:56px;height:56px;border-radius:50%;
-    background:#25D366; color:#fff;
-    display:flex; align-items:center; justify-content:center;
-    box-shadow:0 6px 20px rgba(0,0,0,0.35);
-    transition:background 0.15s, transform 0.15s;
-  }
-  .wa-float svg{width:28px;height:28px; position:relative; z-index:1;}
-  .wa-float:hover{background:#1ebe5b; transform:scale(1.05);}
-  .wa-float:active{transform:scale(0.94);}
-  /* anillo de pulso sutil detrás del botón -- solo transform/opacity
-     (compositor-friendly), no repinta box-shadow en loop */
-  .wa-float::before{
-    content:''; position:absolute; inset:0; border-radius:50%;
-    background:#25D366; opacity:0.55; animation:wa-pulse 2.6s ease-out infinite;
-  }
-  @keyframes wa-pulse{
-    0%{transform:scale(0.9); opacity:0.5;}
-    70%{transform:scale(1.7); opacity:0;}
-    100%{transform:scale(1.7); opacity:0;}
-  }
-  @media (prefers-reduced-motion: reduce){
-    .wa-float::before{animation:none; display:none;}
-  }
-  @media(max-width:400px){
-    .wa-float{width:48px;height:48px; right:14px; bottom:14px;}
-    .wa-float svg{width:24px;height:24px;}
-  }
-
-  /* --- contacto --- */
-  /* #galeria funde el blanco de #clases hacia este gris-crema; #contacto
-     comparte el mismo color que #galeria así que no necesita costura propia
-     -- entre esas dos ya es un lienzo continuo sin corte. */
-  #galeria{
-    background-color:var(--grey-bg);
-    background-image:linear-gradient(to bottom, var(--white), transparent);
-    background-position:top; background-size:100% 60px; background-repeat:no-repeat;
-  }
-  .contact{background:var(--grey-bg);}
-  /* Mapa a pantalla completa dentro de la sección, con una tarjeta flotante
-     sutil (dirección/WhatsApp/Instagram) apoyada arriba -- una sola pieza
-     integrada en vez de dos cajas separadas lado a lado. */
-  .map-hero{position:relative; border-radius:14px; overflow:hidden; min-height:460px;}
-  .map-hero .map-frame{position:absolute; inset:0;}
-  .map-hero .map-frame iframe{width:100%; height:100%; border:0; display:block;}
-  .floating-card{
-    position:absolute; top:20px; left:20px; z-index:1; max-width:290px;
-    display:flex; flex-direction:column; gap:2px; background:rgba(255,255,255,0.96);
-    border-radius:12px; padding:8px; box-shadow:0 18px 40px -18px rgba(0,0,0,0.45);
-  }
-  .contact-card{padding:12px 10px; border-radius:8px; display:flex; gap:14px; align-items:center; transition:background-color 0.2s ease;}
-  a.contact-card:hover{background-color:rgba(140,230,25,0.08);}
-  .contact-card svg{width:22px;height:22px; flex-shrink:0;}
-  .contact-card b{display:block; font-size:11px; color:var(--lime-dark); letter-spacing:1px; text-transform:uppercase; margin-bottom:3px;}
-  .contact-card span{font-size:14px; font-weight:600;}
-  @media(max-width:680px){
-    .map-hero{min-height:auto; border-radius:0; overflow:visible;}
-    .map-hero .map-frame{position:static; border-radius:12px; overflow:hidden; height:300px;}
-    .floating-card{position:static; max-width:none; margin-bottom:16px;}
-  }
-
-  /* --- footer estilo crossfit: columnas + CTA a la derecha --- */
-  /* Igual que header: el border-top seco se reemplaza por el degradé que
-     funde el gris-crema de #contacto hacia este blanco. */
-  footer{
-    padding:60px 24px 30px;
-    background-color:var(--white);
-    background-image:linear-gradient(to bottom, var(--grey-bg), transparent);
-    background-position:top; background-size:100% 60px; background-repeat:no-repeat;
-  }
-  .footer-grid{max-width:1160px;margin:0 auto; display:grid; grid-template-columns:1.2fr 1fr 1fr 1.3fr; gap:40px;}
-  .footer-col h4{font-size:12px; text-transform:uppercase; letter-spacing:1px; font-weight:800; margin-bottom:16px;}
-  .footer-col p, .footer-col a{color:var(--grey-text); font-size:13px; line-height:2; text-decoration:none; display:block;}
-  .footer-cta p{margin-bottom:16px; color:var(--black); font-size:14px; font-weight:600;}
-  .footer-bottom{max-width:1160px;margin:40px auto 0; padding-top:20px; border-top:1px solid rgba(0,0,0,0.08); color:var(--grey-text); font-size:11px; font-family:'JetBrains Mono';}
-
-  @media(max-width:900px){
-    nav ul{display:none;}
-    .split-inner{grid-template-columns:1fr;}
-    .cards-grid{grid-template-columns:1fr;}
-    .card{--tilt:0deg;}
-    .class-row{grid-template-columns:50px 1fr;}
-    .class-times{grid-column:2; text-align:left; margin-top:6px;}
-    .gallery-grid{grid-template-columns:repeat(2,1fr);}
-    .g-item.wide{grid-column:span 2;}
-    .footer-grid{grid-template-columns:1fr 1fr; gap:30px;}
-    .cta-bar-inner{flex-direction:column; align-items:flex-start;}
-  }
-</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700;800&display=swap" rel="stylesheet">
+<!-- Solo los íconos que usa la página (icon_names, en orden alfabético) --
+     si se agrega un ícono nuevo, sumarlo acá. display=block para no mostrar
+     el nombre del ícono como texto mientras carga la fuente. -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=arrow_downward,arrow_forward,chat,chevron_left,chevron_right,east,location_on,lock,navigation,north_east,open_in_new,photo_camera,schedule&display=block" rel="stylesheet">
+<!-- Tailwind precompilado (npm run build:css) -- sin CDN ni build en producción. -->
+<link rel="stylesheet" href="css/tailwind.css">
 </head>
-<body>
+<body class="bg-background font-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container">
 
 <!-- Se completa dinámicamente desde `configuracion` (Supabase). Si no hay
      banner activo o falla la consulta, queda oculto -- nunca se muestra un
      texto viejo hardcodeado ni se rompe el layout. -->
-<div class="announce" id="announceBanner" style="display:none;"></div>
+<div id="announceBanner" style="display:none;" class="bg-primary-container text-on-primary text-center px-4 py-2.5 text-[13px] font-bold [&_a]:underline [&_a]:ml-1.5"></div>
 
-<header>
-  <div class="nav-inner">
-    <div class="logo display">GREEN<span>FIT</span></div>
-    <nav>
-      <ul>
-        <li><a href="#clases">Clases</a></li>
-        <li><a href="#galeria">Galería</a></li>
-        <li><a href="#contacto">Ubicación</a></li>
-      </ul>
+<header class="sticky top-0 z-50 bg-surface-container-lowest/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.5)]">
+  <div class="h-20 max-w-[1240px] mx-auto px-margin md:px-margin-desktop flex items-center justify-between gap-space-md">
+    <a class="flex items-center shrink-0" href="#inicio" aria-label="GreenFit - Inicio">
+      <span class="font-headline-md text-headline-md tracking-tight text-on-surface uppercase">GREEN<span class="text-primary-container">FIT</span></span>
+    </a>
+    <nav class="hidden lg:flex items-center gap-space-lg" aria-label="Secciones">
+      <a class="font-label-caps text-label-caps uppercase text-on-surface-variant hover:text-on-surface transition-colors" href="#disciplinas">Clases</a>
+      <a class="font-label-caps text-label-caps uppercase text-on-surface-variant hover:text-on-surface transition-colors" href="#galeria">Galería</a>
+      <a class="font-label-caps text-label-caps uppercase text-on-surface-variant hover:text-on-surface transition-colors" href="#horarios">Horarios</a>
+      <a class="font-label-caps text-label-caps uppercase text-on-surface-variant hover:text-on-surface transition-colors" href="#ubicacion">Ubicación</a>
     </nav>
-    <div class="header-right">
-      <a class="icon-btn" data-ig-link href="https://www.instagram.com/green_fitargentina/" target="_blank" rel="noopener" aria-label="Instagram GreenFit">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.9" fill="currentColor" stroke="none"/></svg>
+    <div class="flex items-center gap-space-sm">
+      <a class="hidden min-[380px]:flex w-10 h-10 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface items-center justify-center transition-colors" data-ig-link href="https://www.instagram.com/green_fitargentina/" target="_blank" rel="noopener noreferrer" aria-label="Instagram GreenFit">
+        <span aria-hidden="true" class="material-symbols-outlined text-[20px]">photo_camera</span>
       </a>
-      <a class="icon-btn" data-wa-link href="https://wa.me/5492617139662" target="_blank" rel="noopener" aria-label="WhatsApp GreenFit">
-        <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.48 1.32 5.01L2 22l5.25-1.38c1.47.81 3.13 1.24 4.79 1.24h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.91-7.01A9.816 9.816 0 0012.04 2zm5.87 14.03c-.25.7-1.45 1.34-2 1.43-.51.08-1.15.11-1.86-.12-.43-.14-.98-.32-1.69-.63-2.98-1.29-4.93-4.29-5.08-4.49-.15-.2-1.22-1.62-1.22-3.09 0-1.47.77-2.19 1.05-2.49.27-.3.6-.37.8-.37.2 0 .4 0 .57.01.18.01.43-.07.67.51.25.6.85 2.07.92 2.22.07.15.12.33.02.53-.09.2-.14.32-.28.49-.14.17-.3.38-.42.51-.14.15-.29.31-.12.6.17.3.76 1.25 1.63 2.02 1.12 1 2.06 1.31 2.36 1.46.3.15.48.13.65-.08.18-.2.75-.87.95-1.17.2-.3.4-.25.68-.15.28.1 1.77.84 2.08 1 .3.15.51.23.58.36.08.13.08.75-.17 1.45z"/></svg>
+      <a class="w-10 h-10 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-primary flex items-center justify-center transition-colors" data-wa-link href="https://wa.me/5492617139662" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp GreenFit">
+        <span aria-hidden="true" class="material-symbols-outlined text-[20px]">chat</span>
       </a>
-      <a class="pill" href="#contacto">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s7-7.5 7-13a7 7 0 10-14 0c0 5.5 7 13 7 13z"/><circle cx="12" cy="9" r="2.5"/></svg>
-        Ubicación
+      <a class="inline-flex items-center justify-center px-space-md py-space-xs h-10 sm:h-auto rounded-full bg-primary-container hover:bg-primary text-on-primary font-label-caps text-label-caps uppercase transition-all shadow-[0_0_20px_-4px_rgba(132,204,22,0.3)] hover:shadow-[0_0_24px_0_rgba(132,204,22,0.45)]" href="https://greenfitapp.netlify.app/" target="_blank" rel="noopener noreferrer" aria-label="Abrir app de alumnos GreenFit">
+        <span class="sm:hidden">App</span><span class="hidden sm:inline">App Alumnos</span>
       </a>
-      <a class="pill pill-solid" href="https://greenfitapp.netlify.app" target="_blank" rel="noopener noreferrer" aria-label="Abrir app de alumnos GreenFit">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
-        <span class="app-label-full">App Alumnos</span>
-        <span class="app-label-short">App</span>
-      </a>
-      <a class="pill staff-link" href="https://greenfitadmin.netlify.app/login" target="_blank" rel="noopener" aria-label="Acceso Staff - Panel de Control">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
-        <span class="staff-label">Acceso Staff</span>
+      <a class="inline-flex items-center justify-center w-10 h-10 md:w-auto md:h-auto md:px-space-md md:py-space-xs rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface hover:text-primary font-label-caps text-label-caps uppercase transition-colors" href="https://greenfitadmin.netlify.app/login" target="_blank" rel="noopener noreferrer" aria-label="Acceso Staff - Panel de Control">
+        <span aria-hidden="true" class="material-symbols-outlined text-[20px] md:hidden">lock</span><span class="hidden md:inline">Acceso Staff</span>
       </a>
     </div>
   </div>
 </header>
 
-<section class="hero">
-  <div class="hero-inner">
-    <h1 class="display reveal">Entrená con<br><span class="fit">propósito.</span></h1>
-    <p class="reveal">Aparatos, boxeo, kickstrike y crossfit en un mismo espacio. Cada clase tiene su horario, cada horario un lugar para vos.</p>
-    <div class="cta-row reveal" style="display:flex; gap:14px; flex-wrap:wrap;">
-      <a class="pill" href="#clases">Ver horarios</a>
+<main class="w-full">
+<div class="flex flex-col w-full text-on-surface bg-surface-container-lowest antialiased selection:bg-primary selection:text-on-primary">
+
+<!-- HERO -->
+<section id="inicio" class="relative w-full overflow-hidden pt-16 pb-20 md:pb-32 bg-surface-container-lowest">
+  <div class="absolute inset-0 bg-cover bg-center opacity-35 mix-blend-luminosity scale-105" style="background-image: url('img/gym-03.jpg');"></div>
+  <div class="absolute inset-0 bg-gradient-to-r from-surface-container-lowest/90 via-surface-container-lowest/55 via-45% to-surface-container-lowest/20"></div>
+  <div class="absolute inset-0 bg-gradient-to-b from-transparent from-70% to-surface-container-lowest"></div>
+  <div class="absolute top-1/4 -left-32 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+  <div class="absolute bottom-10 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] pointer-events-none"></div>
+  <div class="relative max-w-[1240px] mx-auto px-margin md:px-margin-desktop z-10 flex flex-col justify-between min-h-[70vh]">
+    <div class="flex items-center gap-space-sm pt-4">
+      <span class="inline-flex items-center gap-2 px-space-md py-1 rounded-full bg-surface-container/90 backdrop-blur-md text-primary font-label-caps text-label-caps uppercase tracking-wider shadow-lg">
+        <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+        MENDOZA • CENTRO DE ALTO RENDIMIENTO &amp; COMUNIDAD
+      </span>
     </div>
-    <div class="hero-card reveal">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#8CE619" stroke-width="2"><path d="M12 22s7-7.5 7-13a7 7 0 10-14 0c0 5.5 7 13 7 13z"/><circle cx="12" cy="9" r="2.5"/></svg>
-      <div><b>Videla Castillo 3131</b><span>Mendoza, Argentina</span></div>
-      <a href="#contacto">Ver mapa</a>
+    <div class="my-auto py-12 max-w-4xl">
+      <h1 class="reveal font-display-hero-mobile text-display-hero-mobile md:font-display-hero md:text-display-hero uppercase tracking-tighter text-on-surface">
+        ENTRENÁ CON <br class="hidden sm:inline">
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary-container to-tertiary">PROPÓSITO.</span>
+      </h1>
+      <p class="reveal mt-space-lg text-on-surface-variant font-body-lg text-body-lg max-w-xl [text-shadow:0_1px_12px_rgba(0,0,0,0.7)]">
+        Aparatos, boxeo, kickstrike y crossfit en un mismo espacio. Cada clase tiene su horario, cada horario un lugar reservado para potenciar tu mejor versión.
+      </p>
+      <div class="reveal mt-space-xl flex flex-wrap items-center gap-space-md">
+        <a class="inline-flex items-center justify-center gap-space-xs px-8 py-4 rounded-full bg-primary-container hover:bg-primary text-on-primary font-headline-sm text-headline-sm uppercase transition-all duration-300 shadow-[0_0_30px_-6px_rgba(132,204,22,0.5)] hover:shadow-[0_0_36px_0_rgba(132,204,22,0.7)] hover:-translate-y-0.5 active:translate-y-0" href="#horarios">
+          <span>VER HORARIOS</span>
+          <span aria-hidden="true" class="material-symbols-outlined text-[22px]">arrow_downward</span>
+        </a>
+        <a class="inline-flex items-center justify-center gap-space-xs px-7 py-4 rounded-full bg-surface-container-high/90 hover:bg-surface-container-highest text-on-surface font-headline-sm text-headline-sm uppercase transition-all duration-300 hover:text-primary backdrop-blur-md" data-wa-link data-wa-msg="Hola GreenFit, quiero conocer los planes y probar una clase" href="https://wa.me/5492617139662?text=Hola%20GreenFit%2C%20quiero%20conocer%20los%20planes%20y%20probar%20una%20clase" target="_blank" rel="noopener noreferrer">
+          <span aria-hidden="true" class="material-symbols-outlined text-primary text-[22px]">chat</span>
+          <span>ESCRIBINOS POR WHATSAPP</span>
+        </a>
+      </div>
+    </div>
+    <div class="pt-6 grid grid-cols-1 md:grid-cols-12 gap-space-md items-end">
+      <a class="md:col-span-6 lg:col-span-5 group flex items-center justify-between gap-space-md p-4 rounded bg-surface-container/85 backdrop-blur-xl hover:bg-surface-container-high transition-all duration-300 shadow-xl" href="#ubicacion">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+            <span aria-hidden="true" class="material-symbols-outlined text-[24px]">location_on</span>
+          </div>
+          <div>
+            <p class="font-headline-sm text-headline-sm text-on-surface uppercase tracking-tight">Videla Castillo 3131</p>
+            <p class="font-body-sm text-body-sm text-on-surface-variant">Mendoza, Argentina</p>
+          </div>
+        </div>
+        <span class="font-label-caps text-label-caps uppercase text-primary tracking-widest flex items-center gap-1 group-hover:translate-x-1 transition-transform shrink-0">
+          VER MAPA <span aria-hidden="true" class="material-symbols-outlined text-[16px]">north_east</span>
+        </span>
+      </a>
+      <div class="md:col-span-6 lg:col-span-7 w-fit justify-self-start md:justify-self-end flex flex-wrap items-center gap-6 px-5 py-3 rounded bg-surface-container/85 backdrop-blur-xl shadow-xl text-on-surface-variant font-label-caps text-label-caps uppercase tracking-wider">
+        <div class="flex items-center gap-2">
+          <span id="disciplineCount" class="font-headline-md text-headline-md text-primary font-bold">4</span>
+          <span class="leading-tight text-on-surface">Disciplinas<br><span class="text-on-surface-variant text-[10px]">Bajo un techo</span></span>
+        </div>
+        <div class="w-px h-8 bg-surface-container-high"></div>
+        <div class="flex items-center gap-2">
+          <span class="font-headline-md text-headline-md text-primary font-bold">08–22</span>
+          <span class="leading-tight text-on-surface">Horas<br><span class="text-on-surface-variant text-[10px]">Lun a Vie · Sáb 10–13</span></span>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
-<section class="split-dark">
-  <div class="split-inner">
-    <div class="reveal">
-      <h2 class="display">Todo bajo<br>un mismo techo.</h2>
-      <p>No hace falta cambiar de gimnasio según lo que quieras entrenar hoy. Aparatos, boxeo, kickstrike y crossfit conviven en el mismo espacio, con el mismo grupo.</p>
-      <a class="pill pill-solid" href="#clases">Ver todas las clases</a>
+<!-- DISCIPLINAS ("TODO BAJO UN MISMO TECHO") -->
+<section id="disciplinas" class="w-full py-space-2xl bg-surface-container-lowest relative">
+  <div class="max-w-[1240px] mx-auto px-margin md:px-margin-desktop">
+    <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-space-lg mb-space-2xl">
+      <div class="reveal max-w-2xl">
+        <span class="font-label-caps text-label-caps uppercase text-primary tracking-widest mb-2 block font-bold">CONOCÉ NUESTRO ESPACIO INTEGRAL</span>
+        <h2 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg uppercase tracking-tight text-on-surface">
+          TODO BAJO <span class="text-primary">UN MISMO TECHO.</span>
+        </h2>
+        <p class="mt-3 font-body-lg text-body-lg text-on-surface-variant">
+          No hace falta cambiar de gimnasio según lo que quieras entrenar hoy. Aparatos, boxeo, kickstrike y crossfit conviven en el mismo espacio, con el mismo grupo y la misma exigencia.
+        </p>
+      </div>
+      <div class="shrink-0">
+        <a class="inline-flex items-center gap-2 px-space-lg py-3 rounded-full bg-surface-container hover:bg-surface-container-high text-primary font-label-caps text-label-caps uppercase tracking-wider transition-colors" href="#horarios">
+          <span>EXPLORAR CLASES &amp; HORARIOS</span>
+          <span aria-hidden="true" class="material-symbols-outlined text-[18px]">east</span>
+        </a>
+      </div>
     </div>
-    <!-- Se completa dinámicamente desde `disciplines` (Supabase), filtrando
+    <!-- Se completa dinámicamente desde `disciplines` (Supabase), solo las
          is_active=true. Íconos con match por nombre; si una disciplina no
          tiene ícono asignado (ej: una nueva creada desde el admin) usa el
          genérico. Si no hay ninguna activa (o falla la consulta), se oculta
          la grilla y se muestra un mensaje en su lugar -- nunca queda rota. -->
-    <div class="discipline-grid" id="disciplineGrid"></div>
-    <p class="discipline-empty-msg" id="disciplineEmptyMsg" style="display:none;">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-space-md" id="disciplineGrid"></div>
+    <p class="text-on-surface-variant text-center py-2.5 text-sm" id="disciplineEmptyMsg" style="display:none;">
       Estamos actualizando nuestro catálogo de disciplinas. ¡Volvé pronto!
     </p>
   </div>
 </section>
 
-<section class="cards">
-  <div class="cards-grid">
-    <a class="card reveal" href="#galeria">
-      <div class="card-img"><img src="img/gym-01.jpg" alt="Instalaciones GreenFit"></div>
-      <div class="card-body">
-        <h3>Conocé las instalaciones</h3>
-        <p>Piso de goma, zona de arena, anillas, llantas y rack de pesas libres bajo el mismo techo.</p>
-        <span class="card-cta">Ver galería</span>
-      </div>
-    </a>
-    <a class="card reveal" href="#clases">
-      <div class="card-img"><img src="img/gym-04.jpg" alt="Horarios GreenFit"></div>
-      <div class="card-body">
-        <h3>Horarios de clases</h3>
-        <p>Aparatos, boxeo, kickstrike y crossfit, con horarios de mañana, tarde y noche todos los días.</p>
-        <span class="card-cta">Ver horarios</span>
-      </div>
-    </a>
-    <a class="card reveal" href="#contacto">
-      <div class="card-img"><img src="img/gym-02.jpg" alt="Recepción GreenFit"></div>
-      <div class="card-body">
-        <h3>Cómo llegar</h3>
-        <p>Videla Castillo 3131, Mendoza. Mapa interactivo y contacto directo por WhatsApp.</p>
-        <span class="card-cta">Ver ubicación</span>
-      </div>
-    </a>
-  </div>
-</section>
-
-<div class="photo-statement">
-  <div class="inner reveal">
-    <div class="eyebrow mono">NO NECESITÁS ESTAR LISTO.</div>
-    <h2 class="display">Solo tenés que empezar.</h2>
-    <p>Tu primera clase no es sobre estar en forma, es sobre aparecer. Coaching real, un grupo que te acompaña y el entrenamiento que te lleva más lejos.</p>
-  </div>
-</div>
-
-<section id="clases">
-  <div class="section-inner">
-    <div class="section-head reveal">
-      <div class="eyebrow mono">HORARIOS</div>
-      <h2 class="display">Elegí tu ritmo</h2>
-    </div>
-    <!-- Se completa dinámicamente cruzando `disciplines` (is_active=true)
-         con `classes` (días/horarios reales) -- una fila por disciplina que
-         tenga al menos una clase cargada. Aparatos es un pase de acceso
-         libre sin turnos fijos (kind=membership, sin filas en `classes`),
-         así que por diseño no aparece acá -- no es un bug, es la naturaleza
-         de ese plan. Si no hay ninguna clase cargada, se muestra un mensaje
-         en vez de una lista vacía o rota. -->
-    <div class="class-list" id="scheduleList"></div>
-    <p class="discipline-empty-msg" id="scheduleEmptyMsg" style="display:none;">
-      Todavía no hay horarios cargados. ¡Volvé pronto!
-    </p>
-  </div>
-</section>
-
-<section id="galeria">
-  <div class="section-inner">
-    <div class="section-head reveal">
-      <div class="eyebrow mono">GALERÍA</div>
-      <h2 class="display">Así se entrena acá</h2>
-    </div>
-    <div class="carousel-wrap">
-      <button class="car-btn car-prev" onclick="document.getElementById('gTrack').scrollBy({left:-280,behavior:'smooth'})">‹</button>
-      <div class="carousel-track" id="gTrack">
-        <div class="g-item wide"><span class="tag-badge">Foto</span><img src="img/clase-grupal.jpg" alt="Clase grupal de boxeo GreenFit"></div>
-        <div class="g-item"><span class="tag-badge">Video</span><video controls preload="none" poster="video/poster-01.jpg"><source src="video/entreno-01.mp4" type="video/mp4"></video></div>
-        <div class="g-item"><span class="tag-badge">Video</span><video controls preload="none" poster="video/poster-08.jpg"><source src="video/entreno-08.mp4" type="video/mp4"></video></div>
-        <div class="g-item"><span class="tag-badge">Foto</span><img src="img/gym-01.jpg" alt="Instalaciones GreenFit"></div>
-        <div class="g-item"><span class="tag-badge">Video</span><video controls preload="none" poster="video/poster-04.jpg"><source src="video/entreno-04.mp4" type="video/mp4"></video></div>
-        <div class="g-item"><span class="tag-badge">Foto</span><img src="img/gym-02.jpg" alt="Recepción GreenFit"></div>
-        <div class="g-item"><span class="tag-badge">Video</span><video controls preload="none" poster="video/poster-07.jpg"><source src="video/entreno-07.mp4" type="video/mp4"></video></div>
-        <div class="g-item wide"><span class="tag-badge">Foto</span><img src="img/gym-03.jpg" alt="Zona de pesas GreenFit"></div>
-        <div class="g-item"><span class="tag-badge">Foto</span><img src="img/gym-04.jpg" alt="Piso funcional GreenFit"></div>
-      </div>
-      <button class="car-btn car-next" onclick="document.getElementById('gTrack').scrollBy({left:280,behavior:'smooth'})">›</button>
-    </div>
-  </div>
-</section>
-
-<section id="contacto" class="contact">
-  <div class="section-inner">
-    <div class="section-head reveal">
-      <div class="eyebrow mono">UBICACIÓN Y CONTACTO</div>
-      <h2 class="display">Vení a entrenar</h2>
-    </div>
-    <div class="map-hero reveal">
-      <div class="map-frame">
-        <iframe src="https://www.google.com/maps?q=-32.8673553,-68.8268646&z=16&output=embed" loading="lazy" allowfullscreen></iframe>
-      </div>
-      <div class="floating-card">
-        <div class="contact-card">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#8CE619" stroke-width="2"><path d="M12 22s7-7.5 7-13a7 7 0 10-14 0c0 5.5 7 13 7 13z"/><circle cx="12" cy="9" r="2.5"/></svg>
-          <div><b>Dirección</b><span>Videla Castillo 3131, Mendoza</span></div>
+<!-- BANNER MOTIVACIONAL -->
+<section class="relative w-full py-space-2xl my-space-md overflow-hidden bg-surface-container-lowest">
+  <div class="absolute -top-24 right-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+  <div class="max-w-[1240px] mx-auto px-margin md:px-margin-desktop relative z-10">
+    <div class="rounded-lg bg-surface-container-low p-space-lg md:p-space-xl lg:p-space-2xl overflow-hidden shadow-2xl relative">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-center">
+        <div class="reveal lg:col-span-7 flex flex-col justify-center">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 text-primary font-label-caps text-label-caps uppercase tracking-widest font-bold">
+              <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+              MENTALIDAD GREENFIT
+            </span>
+          </div>
+          <h2 class="font-headline-lg-mobile text-headline-lg-mobile md:font-display-hero md:text-display-hero uppercase tracking-tighter text-on-surface">
+            NO NECESITÁS ESTAR LISTO. <br>
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary-container to-tertiary">SOLO TENÉS QUE EMPEZAR.</span>
+          </h2>
         </div>
-        <div class="contact-card">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#8CE619" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-          <div><b>WhatsApp</b><span data-wa-text>+54 9 2617 13-9662</span></div>
+        <div class="lg:col-span-5 relative flex justify-center lg:justify-end">
+          <div class="relative w-full max-w-sm sm:max-w-md rounded-lg overflow-hidden shadow-2xl group bg-surface-container-highest">
+            <img alt="Clase grupal de boxeo en GreenFit" class="w-full h-[500px] object-cover transition-transform duration-700 group-hover:scale-105" src="img/clase-grupal.jpg" loading="lazy">
+            <div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest/90 via-surface-container-lowest/20 to-transparent pointer-events-none"></div>
+            <div class="absolute top-4 left-4 z-10">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-lowest/90 backdrop-blur-md text-primary font-label-caps text-label-caps uppercase tracking-wider shadow-lg">
+                <span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
+                Comunidad GreenFit
+              </span>
+            </div>
+          </div>
         </div>
-        <a class="contact-card" data-ig-link href="https://www.instagram.com/green_fitargentina/" target="_blank" rel="noopener" style="text-decoration:none; color:inherit;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#8CE619" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.8" fill="#8CE619"/></svg>
-          <div><b>Instagram</b><span data-ig-text>@green_fitargentina</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INSTALACIONES -->
+<section class="w-full py-space-2xl bg-surface">
+  <div class="max-w-[1240px] mx-auto px-margin md:px-margin-desktop">
+    <div class="reveal mb-space-xl">
+      <span class="font-label-caps text-label-caps uppercase text-primary tracking-widest block mb-2 font-bold">INFRAESTRUCTURA DEPORTIVA</span>
+      <h2 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg uppercase text-on-surface tracking-tight">
+        CONOCÉ LAS <span class="text-primary">INSTALACIONES</span>
+      </h2>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg">
+      <div class="reveal">
+        <a class="rounded bg-surface-container-low p-space-lg flex flex-col justify-between hover:bg-surface-container transition-all group h-full" href="#galeria">
+          <div>
+            <div class="w-full h-52 rounded overflow-hidden mb-space-md relative">
+              <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="img/gym-01.jpg" alt="Instalaciones GreenFit" loading="lazy">
+              <span class="absolute top-3 left-3 bg-surface-container-lowest/80 backdrop-blur-md px-2.5 py-1 rounded text-[11px] font-bold tracking-wider uppercase text-primary">Instalaciones</span>
+            </div>
+            <h3 class="font-headline-sm text-headline-sm uppercase text-on-surface mb-2">CONOCÉ LAS INSTALACIONES</h3>
+            <p class="font-body-md text-body-md text-on-surface-variant">Piso de goma, zona de arena, anillas, llantas y rack de pesas libres bajo el mismo techo.</p>
+          </div>
+          <span class="mt-space-lg pt-space-sm inline-flex items-center gap-2 font-label-caps text-label-caps uppercase text-primary group-hover:underline">
+            <span>VER GALERÍA</span><span aria-hidden="true" class="material-symbols-outlined text-[16px]">arrow_forward</span>
+          </span>
+        </a>
+      </div>
+      <div class="reveal">
+        <a class="rounded bg-surface-container-low p-space-lg flex flex-col justify-between hover:bg-surface-container transition-all group h-full" href="#horarios">
+          <div>
+            <div class="w-full h-52 rounded overflow-hidden mb-space-md relative">
+              <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="img/gym-04.jpg" alt="Horarios GreenFit" loading="lazy">
+              <span class="absolute top-3 left-3 bg-surface-container-lowest/80 backdrop-blur-md px-2.5 py-1 rounded text-[11px] font-bold tracking-wider uppercase text-primary">Flexibilidad</span>
+            </div>
+            <h3 class="font-headline-sm text-headline-sm uppercase text-on-surface mb-2">TURNOS MAÑANA, TARDE Y NOCHE</h3>
+            <p class="font-body-md text-body-md text-on-surface-variant">Aparatos, boxeo, kickstrike y crossfit, con horarios de mañana, tarde y noche.</p>
+          </div>
+          <span class="mt-space-lg pt-space-sm inline-flex items-center gap-2 font-label-caps text-label-caps uppercase text-primary group-hover:underline">
+            <span>CONSULTAR TURNOS</span><span aria-hidden="true" class="material-symbols-outlined text-[16px]">schedule</span>
+          </span>
+        </a>
+      </div>
+      <div class="reveal">
+        <a class="rounded bg-surface-container-low p-space-lg flex flex-col justify-between hover:bg-surface-container transition-all group h-full" href="#ubicacion">
+          <div>
+            <div class="w-full h-52 rounded overflow-hidden mb-space-md relative">
+              <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="img/gym-02.jpg" alt="Recepción GreenFit" loading="lazy">
+              <span class="absolute top-3 left-3 bg-surface-container-lowest/80 backdrop-blur-md px-2.5 py-1 rounded text-[11px] font-bold tracking-wider uppercase text-primary">Ubicación</span>
+            </div>
+            <h3 class="font-headline-sm text-headline-sm uppercase text-on-surface mb-2">VIDELA CASTILLO 3131</h3>
+            <p class="font-body-md text-body-md text-on-surface-variant">Videla Castillo 3131, Mendoza. Mapa interactivo y contacto directo por WhatsApp.</p>
+          </div>
+          <span class="mt-space-lg pt-space-sm inline-flex items-center gap-2 font-label-caps text-label-caps uppercase text-primary group-hover:underline">
+            <span>CÓMO LLEGAR &amp; MAPA</span><span aria-hidden="true" class="material-symbols-outlined text-[16px]">navigation</span>
+          </span>
         </a>
       </div>
     </div>
   </div>
 </section>
 
-<footer>
-  <div class="footer-grid">
-    <div class="footer-col">
-      <h4 class="display" style="font-size:16px;">GREENFIT</h4>
-      <p>Videla Castillo 3131<br>Mendoza, Argentina</p>
-      <a data-ig-link data-ig-text href="https://www.instagram.com/green_fitargentina/" target="_blank" rel="noopener" style="margin-top:10px; color:var(--grey-text); font-size:13px; text-decoration:underline;">@green_fitargentina</a>
+<!-- GALERÍA ("ASÍ SE ENTRENA ACÁ") -- carrusel real con las fotos y videos del gimnasio -->
+<section class="w-full py-space-2xl bg-surface-container-lowest" id="galeria">
+  <div class="max-w-[1240px] mx-auto px-margin md:px-margin-desktop">
+    <div class="reveal flex items-end justify-between mb-space-xl">
+      <div>
+        <span class="font-label-caps text-label-caps uppercase text-primary tracking-widest block mb-2 font-bold">GALERÍA</span>
+        <h2 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg uppercase text-on-surface tracking-tight">
+          ASÍ SE <span class="text-primary">ENTRENA ACÁ</span>
+        </h2>
+        <p class="text-on-surface-variant font-body-md text-body-md mt-1">Imágenes reales de la comunidad y los entrenamientos de GreenFit.</p>
+      </div>
+      <div class="hidden sm:flex items-center gap-2">
+        <button type="button" aria-label="Anterior" class="w-10 h-10 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface flex items-center justify-center transition-colors" id="gallery-prev">
+          <span aria-hidden="true" class="material-symbols-outlined text-[20px]">chevron_left</span>
+        </button>
+        <button type="button" aria-label="Siguiente" class="w-10 h-10 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface flex items-center justify-center transition-colors" id="gallery-next">
+          <span aria-hidden="true" class="material-symbols-outlined text-[20px]">chevron_right</span>
+        </button>
+      </div>
     </div>
-    <div class="footer-col">
-      <h4>Clases</h4>
-      <p>Aparatos</p>
-      <p>Boxeo</p>
-      <p>Kickstrike</p>
-      <p>Crossfit</p>
-    </div>
-    <div class="footer-col">
-      <h4>Sitio</h4>
-      <a href="#clases">Horarios</a>
-      <a href="#galeria">Galería</a>
-      <a href="#contacto">Ubicación</a>
-      <a href="https://greenfitadmin.netlify.app/login" target="_blank" rel="noopener">Panel de Administración</a>
-    </div>
-    <div class="footer-col footer-cta">
-      <h4>Vení a entrenar hoy</h4>
-      <p>Escribinos y arrancá esta semana.</p>
+    <div class="flex gap-space-md overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar" id="gTrack">
+      <div class="g-item relative shrink-0 basis-[340px] sm:basis-[460px] aspect-[3/4] rounded overflow-hidden bg-surface-container snap-start"><span class="absolute top-3 left-3 z-10 px-2.5 py-1 rounded bg-surface-container-lowest/90 text-primary font-label-caps text-label-caps uppercase tracking-wider">Foto</span><img class="w-full h-full object-cover block" src="img/clase-grupal.jpg" alt="Clase grupal de boxeo GreenFit" loading="lazy"></div>
+      <div class="g-item relative shrink-0 basis-[200px] sm:basis-[260px] aspect-[3/4] rounded overflow-hidden bg-surface-container snap-start"><span class="absolute top-3 left-3 z-10 px-2.5 py-1 rounded bg-surface-container-lowest/90 text-primary font-label-caps text-label-caps uppercase tracking-wider">Video</span><video class="w-full h-full object-cover block" controls preload="none" poster="video/poster-01.jpg"><source src="video/entreno-01.mp4" type="video/mp4"></video></div>
+      <div class="g-item relative shrink-0 basis-[200px] sm:basis-[260px] aspect-[3/4] rounded overflow-hidden bg-surface-container snap-start"><span class="absolute top-3 left-3 z-10 px-2.5 py-1 rounded bg-surface-container-lowest/90 text-primary font-label-caps text-label-caps uppercase tracking-wider">Video</span><video class="w-full h-full object-cover block" controls preload="none" poster="video/poster-08.jpg"><source src="video/entreno-08.mp4" type="video/mp4"></video></div>
+      <div class="g-item relative shrink-0 basis-[200px] sm:basis-[260px] aspect-[3/4] rounded overflow-hidden bg-surface-container snap-start"><span class="absolute top-3 left-3 z-10 px-2.5 py-1 rounded bg-surface-container-lowest/90 text-primary font-label-caps text-label-caps uppercase tracking-wider">Foto</span><img class="w-full h-full object-cover block" src="img/gym-01.jpg" alt="Instalaciones GreenFit" loading="lazy"></div>
+      <div class="g-item relative shrink-0 basis-[200px] sm:basis-[260px] aspect-[3/4] rounded overflow-hidden bg-surface-container snap-start"><span class="absolute top-3 left-3 z-10 px-2.5 py-1 rounded bg-surface-container-lowest/90 text-primary font-label-caps text-label-caps uppercase tracking-wider">Video</span><video class="w-full h-full object-cover block" controls preload="none" poster="video/poster-04.jpg"><source src="video/entreno-04.mp4" type="video/mp4"></video></div>
+      <div class="g-item relative shrink-0 basis-[200px] sm:basis-[260px] aspect-[3/4] rounded overflow-hidden bg-surface-container snap-start"><span class="absolute top-3 left-3 z-10 px-2.5 py-1 rounded bg-surface-container-lowest/90 text-primary font-label-caps text-label-caps uppercase tracking-wider">Foto</span><img class="w-full h-full object-cover block" src="img/gym-02.jpg" alt="Recepción GreenFit" loading="lazy"></div>
+      <div class="g-item relative shrink-0 basis-[200px] sm:basis-[260px] aspect-[3/4] rounded overflow-hidden bg-surface-container snap-start"><span class="absolute top-3 left-3 z-10 px-2.5 py-1 rounded bg-surface-container-lowest/90 text-primary font-label-caps text-label-caps uppercase tracking-wider">Video</span><video class="w-full h-full object-cover block" controls preload="none" poster="video/poster-07.jpg"><source src="video/entreno-07.mp4" type="video/mp4"></video></div>
+      <div class="g-item relative shrink-0 basis-[340px] sm:basis-[460px] aspect-[3/4] rounded overflow-hidden bg-surface-container snap-start"><span class="absolute top-3 left-3 z-10 px-2.5 py-1 rounded bg-surface-container-lowest/90 text-primary font-label-caps text-label-caps uppercase tracking-wider">Foto</span><img class="w-full h-full object-cover block" src="img/gym-03.jpg" alt="Zona de pesas GreenFit" loading="lazy"></div>
+      <div class="g-item relative shrink-0 basis-[200px] sm:basis-[260px] aspect-[3/4] rounded overflow-hidden bg-surface-container snap-start"><span class="absolute top-3 left-3 z-10 px-2.5 py-1 rounded bg-surface-container-lowest/90 text-primary font-label-caps text-label-caps uppercase tracking-wider">Foto</span><img class="w-full h-full object-cover block" src="img/gym-04.jpg" alt="Piso funcional GreenFit" loading="lazy"></div>
     </div>
   </div>
-  <div class="footer-bottom">GREENFIT · TU BOX. TU RITMO. TU MEJOR VERSIÓN. · MENDOZA, ARGENTINA</div>
-  <div style="text-align:center; margin-top:14px; font-size:12px; color:var(--grey-text); opacity:0.7;">
-    Desarrollado por <a href="https://www.instagram.com/ffacuq/" target="_blank" rel="noopener" style="color:inherit; text-decoration:underline;">Facundo Uria</a>
+</section>
+
+<!-- HORARIOS ("ELEGÍ TU RITMO") -->
+<section class="w-full py-space-2xl bg-surface" id="horarios">
+  <!-- alias del ancla histórica #clases (links externos viejos siguen aterrizando acá) -->
+  <span id="clases" class="block scroll-mt-24"></span>
+  <div class="max-w-[1240px] mx-auto px-margin md:px-margin-desktop">
+    <div class="reveal flex flex-col md:flex-row md:items-end justify-between gap-4 mb-space-xl">
+      <div>
+        <span class="font-label-caps text-label-caps uppercase text-primary tracking-widest block mb-2 font-bold">HORARIOS</span>
+        <h2 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg uppercase text-on-surface tracking-tight">
+          ELEGÍ <span class="text-primary">TU RITMO</span>
+        </h2>
+        <p class="text-on-surface-variant font-body-md text-body-md mt-1">Vení a entrenar en los horarios que mejor coordinen con tu día a día.</p>
+      </div>
+    </div>
+    <!-- Se completa dinámicamente con TODO el catálogo de `disciplines`
+         (sin filtrar por is_active) cruzado con `classes` (días/horarios
+         reales). Aparatos usa un horario fijo del gimnasio (no depende de
+         `classes`). Si no hay nada cargado, se muestra un mensaje en vez de
+         una lista vacía o rota. -->
+    <div class="space-y-4" id="scheduleList"></div>
+    <p class="text-on-surface-variant text-center py-2.5 text-sm" id="scheduleEmptyMsg" style="display:none;">
+      Todavía no hay horarios cargados. ¡Volvé pronto!
+    </p>
+  </div>
+</section>
+
+<!-- UBICACIÓN Y CONTACTO ("VENÍ A ENTRENAR") -->
+<section class="w-full py-space-2xl bg-surface-container-lowest" id="ubicacion">
+  <!-- alias del ancla histórica #contacto -->
+  <span id="contacto" class="block scroll-mt-24"></span>
+  <div class="max-w-[1240px] mx-auto px-margin md:px-margin-desktop">
+    <div class="reveal mb-space-xl">
+      <span class="font-label-caps text-label-caps uppercase text-primary tracking-widest block mb-2 font-bold">UBICACIÓN Y CONTACTO</span>
+      <h2 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg uppercase text-on-surface tracking-tight">
+        VENÍ A <span class="text-primary">ENTRENAR</span>
+      </h2>
+      <p class="font-body-lg text-body-lg text-on-surface-variant mt-2 max-w-2xl">Estamos en el corazón de la 4ª Sección Este de Mendoza. Podés venir directamente o escribirnos por WhatsApp para consultar horarios y planes disponibles.</p>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-start">
+      <!-- Mapa interactivo real (Google Maps embed) + tarjeta con dirección/WhatsApp/Instagram.
+           En mobile la tarjeta va arriba del mapa (no lo tapa); desde sm flota encima. -->
+      <div class="lg:col-span-7 w-full sm:relative sm:h-[450px] rounded overflow-hidden shadow-2xl bg-surface-container">
+        <div class="sm:absolute sm:top-6 sm:left-6 sm:right-auto sm:max-w-xs sm:z-10 p-space-md sm:rounded bg-surface-container-lowest/95 backdrop-blur-xl sm:shadow-2xl space-y-space-sm">
+          <div class="flex items-start gap-3">
+            <span aria-hidden="true" class="material-symbols-outlined text-primary text-[22px] mt-0.5">location_on</span>
+            <div>
+              <p class="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-wider">DIRECCIÓN</p>
+              <p class="font-headline-sm text-sm font-bold text-on-surface">Videla Castillo 3131, Mendoza</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <span aria-hidden="true" class="material-symbols-outlined text-primary text-[22px] mt-0.5">chat</span>
+            <div>
+              <p class="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-wider">WHATSAPP DIRECTO</p>
+              <a class="font-body-md text-sm font-bold text-primary hover:underline" data-wa-link data-wa-text href="https://wa.me/5492617139662" target="_blank" rel="noopener noreferrer">+54 9 2617 13-9662</a>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <span aria-hidden="true" class="material-symbols-outlined text-primary text-[22px] mt-0.5">photo_camera</span>
+            <div>
+              <p class="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-wider">INSTAGRAM OFICIAL</p>
+              <a class="font-body-md text-sm text-on-surface hover:text-primary transition-colors" data-ig-link data-ig-text href="https://www.instagram.com/green_fitargentina/" target="_blank" rel="noopener noreferrer">@green_fitargentina</a>
+            </div>
+          </div>
+          <a class="w-full mt-2 py-2 rounded-full bg-surface-container hover:bg-surface-container-high text-primary font-label-caps text-label-caps uppercase flex items-center justify-center gap-1.5 transition-colors" href="https://maps.google.com/?q=Videla+Castillo+3131+Mendoza+Argentina" target="_blank" rel="noopener noreferrer">
+            <span>Abrir en Google Maps</span>
+            <span aria-hidden="true" class="material-symbols-outlined text-[14px]">open_in_new</span>
+          </a>
+        </div>
+        <div class="h-[320px] sm:h-full sm:absolute sm:inset-0 -z-0 mt-space-md sm:mt-0">
+          <iframe class="w-full h-full border-0 block" title="Mapa de GreenFit - Videla Castillo 3131, Mendoza" src="https://www.google.com/maps?q=-32.8673553,-68.8268646&z=16&output=embed" loading="lazy" allowfullscreen></iframe>
+        </div>
+      </div>
+      <!-- Formulario: arma el mensaje de WhatsApp con nombre, disciplina y mensaje -->
+      <div class="lg:col-span-5 bg-surface-container-low rounded p-space-xl shadow-xl">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-primary animate-ping"></span>
+          <span class="font-label-caps text-label-caps uppercase text-primary tracking-widest font-bold">CONTACTO DIRECTO</span>
+        </div>
+        <h3 class="font-headline-md text-headline-md uppercase text-on-surface mb-2">CONSULTAR POR WHATSAPP</h3>
+        <p class="font-body-sm text-body-sm text-on-surface-variant mb-space-lg">Escribinos directamente por WhatsApp para consultar por las disciplinas, horarios y planes disponibles.</p>
+        <form class="space-y-4" id="contact-form">
+          <div>
+            <label for="client-name" class="block font-label-caps text-[11px] uppercase tracking-wider text-on-surface-variant mb-1.5">Tu Nombre y Apellido</label>
+            <input class="w-full px-4 py-3 rounded bg-surface-container text-on-surface placeholder:text-outline text-sm focus:outline-none focus:ring-2 focus:ring-primary/60 focus:bg-surface-container-high transition-colors" id="client-name" placeholder="Ej. Lucas Gómez" required type="text" autocomplete="name">
+          </div>
+          <div>
+            <label for="client-discipline" class="block font-label-caps text-[11px] uppercase tracking-wider text-on-surface-variant mb-1.5">Disciplina que te interesa</label>
+            <select class="w-full px-4 py-3 rounded bg-surface-container text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary/60 focus:bg-surface-container-high transition-colors" id="client-discipline">
+              <option value="Consulta General de Planes">Consulta General de Planes</option>
+              <option value="Aparatos">Aparatos</option>
+              <option value="Boxeo">Boxeo</option>
+              <option value="Crossfit">Crossfit</option>
+              <option value="Kickstrike">Kickstrike</option>
+            </select>
+          </div>
+          <div>
+            <label for="client-msg" class="block font-label-caps text-[11px] uppercase tracking-wider text-on-surface-variant mb-1.5">Mensaje (opcional)</label>
+            <textarea class="w-full px-4 py-3 rounded bg-surface-container text-on-surface placeholder:text-outline text-sm focus:outline-none focus:ring-2 focus:ring-primary/60 focus:bg-surface-container-high transition-colors resize-none" id="client-msg" rows="3" placeholder="Contanos qué te gustaría saber (horarios, planes, clase de prueba...)"></textarea>
+          </div>
+          <button class="w-full py-4 rounded-full bg-primary-container hover:bg-primary text-on-primary font-headline-sm text-headline-sm uppercase transition-all shadow-[0_0_20px_rgba(132,204,22,0.4)] flex items-center justify-center gap-2 mt-4" type="submit">
+            <span aria-hidden="true" class="material-symbols-outlined text-[22px]">chat</span>
+            <span>ENVIAR MENSAJE POR WHATSAPP</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+</main>
+
+<footer class="w-full bg-surface-container-lowest">
+  <div class="max-w-[1240px] mx-auto px-margin md:px-margin-desktop pt-space-2xl pb-space-xl">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-space-xl pb-space-2xl">
+      <div class="lg:col-span-4 flex flex-col gap-space-md">
+        <span class="font-headline-md text-headline-md tracking-tight text-on-surface uppercase">GREEN<span class="text-primary-container">FIT</span></span>
+        <p class="font-body-md text-body-md text-on-surface-variant max-w-sm">Centro de entrenamiento funcional de alta intensidad, fuerza y combate. Disciplina, comunidad y potencia física en Mendoza.</p>
+        <div class="flex items-start gap-space-sm">
+          <span aria-hidden="true" class="material-symbols-outlined text-primary text-[20px] mt-0.5">location_on</span>
+          <span class="font-body-sm text-body-sm text-on-surface">Videla Castillo 3131, Mendoza, Argentina</span>
+        </div>
+        <div class="flex items-start gap-space-sm">
+          <span aria-hidden="true" class="material-symbols-outlined text-primary text-[20px] mt-0.5">schedule</span>
+          <span class="font-body-sm text-body-sm text-on-surface">Lunes a Viernes 08:00 a 12:00 y 15:00 a 22:00 | Sábados 10:00 a 13:00</span>
+        </div>
+        <a class="inline-flex items-center gap-space-sm text-on-surface-variant hover:text-primary transition-colors self-start" data-ig-link href="https://www.instagram.com/green_fitargentina/" target="_blank" rel="noopener noreferrer">
+          <span aria-hidden="true" class="material-symbols-outlined text-primary text-[20px]">photo_camera</span>
+          <span class="font-body-sm text-body-sm" data-ig-text>@green_fitargentina</span>
+        </a>
+      </div>
+      <div class="lg:col-span-3 flex flex-col gap-space-md">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface uppercase tracking-wider">Clases</h3>
+        <ul class="flex flex-col gap-space-sm">
+          <li class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors"><a href="#horarios">Aparatos</a></li>
+          <li class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors"><a href="#horarios">Boxeo</a></li>
+          <li class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors"><a href="#horarios">Kickstrike</a></li>
+          <li class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors"><a href="#horarios">Crossfit</a></li>
+        </ul>
+      </div>
+      <div class="lg:col-span-2 flex flex-col gap-space-md">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface uppercase tracking-wider">Sitio</h3>
+        <ul class="flex flex-col gap-space-sm">
+          <li class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors"><a href="#horarios">Horarios</a></li>
+          <li class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors"><a href="#galeria">Galería</a></li>
+          <li class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors"><a href="#ubicacion">Ubicación</a></li>
+          <li class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors"><a href="https://greenfitadmin.netlify.app/login" target="_blank" rel="noopener noreferrer">Panel de Administración</a></li>
+        </ul>
+      </div>
+      <div class="lg:col-span-3 flex flex-col gap-space-md bg-surface-container-low p-space-lg rounded">
+        <h3 class="font-headline-sm text-headline-sm text-on-surface uppercase">Vení a entrenar hoy</h3>
+        <p class="font-body-sm text-body-sm text-on-surface-variant">Escribinos por WhatsApp y arrancá esta semana.</p>
+        <a class="inline-flex items-center justify-center gap-space-xs w-full py-space-sm rounded-full bg-primary-container hover:bg-primary text-on-primary font-label-caps text-label-caps uppercase transition-all shadow-[0_0_20px_-4px_rgba(132,204,22,0.3)]" data-wa-link data-wa-msg="Hola GreenFit, quiero conocer los planes y probar una clase" href="https://wa.me/5492617139662?text=Hola%20GreenFit%2C%20quiero%20conocer%20los%20planes%20y%20probar%20una%20clase" target="_blank" rel="noopener noreferrer">
+          <span aria-hidden="true" class="material-symbols-outlined text-[18px]">chat</span><span>WhatsApp Directo</span>
+        </a>
+      </div>
+    </div>
+    <div class="pt-space-lg flex flex-col sm:flex-row items-center justify-between gap-space-md text-on-surface-variant font-body-sm text-body-sm">
+      <p>© <span id="anioActual">2026</span> GREENFIT · Tu box. Tu ritmo. Tu mejor versión. · Mendoza, Argentina</p>
+      <p>Desarrollado por <a class="underline hover:text-on-surface transition-colors" href="https://www.instagram.com/ffacuq/" target="_blank" rel="noopener noreferrer">Facundo Uria</a></p>
+    </div>
   </div>
 </footer>
 
-<!-- Único punto de contacto flotante, junto con el ícono del header --
-     ambos leen el número dinámicamente (ver script de más abajo). El href
-     estático de acá abajo es el valor de producción actual, así que el botón
-     funciona igual aunque la consulta a Supabase falle. -->
-<a class="wa-float" data-wa-link href="https://wa.me/5492617139662" target="_blank" rel="noopener" aria-label="Escribinos por WhatsApp">
-  <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.48 1.32 5.01L2 22l5.25-1.38c1.47.81 3.13 1.24 4.79 1.24h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.91-7.01A9.816 9.816 0 0012.04 2zm5.87 14.03c-.25.7-1.45 1.34-2 1.43-.51.08-1.15.11-1.86-.12-.43-.14-.98-.32-1.69-.63-2.98-1.29-4.93-4.29-5.08-4.49-.15-.2-1.22-1.62-1.22-3.09 0-1.47.77-2.19 1.05-2.49.27-.3.6-.37.8-.37.2 0 .4 0 .57.01.18.01.43-.07.67.51.25.6.85 2.07.92 2.22.07.15.12.33.02.53-.09.2-.14.32-.28.49-.14.17-.3.38-.42.51-.14.15-.29.31-.12.6.17.3.76 1.25 1.63 2.02 1.12 1 2.06 1.31 2.36 1.46.3.15.48.13.65-.08.18-.2.75-.87.95-1.17.2-.3.4-.25.68-.15.28.1 1.77.84 2.08 1 .3.15.51.23.58.36.08.13.08.75-.17 1.45z"/></svg>
+<!-- Botón flotante de WhatsApp: siempre visible mientras se scrollea. El href
+     estático es el valor de producción actual, así que funciona igual aunque
+     la consulta a Supabase falle. -->
+<a class="wa-float fixed right-3.5 bottom-3.5 sm:right-5 sm:bottom-5 z-40 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#25D366] hover:bg-[#1ebe5b] active:scale-95 text-white flex items-center justify-center shadow-[0_6px_20px_rgba(0,0,0,0.35)] transition-colors" data-wa-link href="https://wa.me/5492617139662" target="_blank" rel="noopener noreferrer" aria-label="Escribinos por WhatsApp">
+  <svg class="w-6 h-6 sm:w-7 sm:h-7 relative z-[1]" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.48 1.32 5.01L2 22l5.25-1.38c1.47.81 3.13 1.24 4.79 1.24h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.91-7.01A9.816 9.816 0 0012.04 2zm5.87 14.03c-.25.7-1.45 1.34-2 1.43-.51.08-1.15.11-1.86-.12-.43-.14-.98-.32-1.69-.63-2.98-1.29-4.93-4.29-5.08-4.49-.15-.2-1.22-1.62-1.22-3.09 0-1.47.77-2.19 1.05-2.49.27-.3.6-.37.8-.37.2 0 .4 0 .57.01.18.01.43-.07.67.51.25.6.85 2.07.92 2.22.07.15.12.33.02.53-.09.2-.14.32-.28.49-.14.17-.3.38-.42.51-.14.15-.29.31-.12.6.17.3.76 1.25 1.63 2.02 1.12 1 2.06 1.31 2.36 1.46.3.15.48.13.65-.08.18-.2.75-.87.95-1.17.2-.3.4-.25.68-.15.28.1 1.77.84 2.08 1 .3.15.51.23.58.36.08.13.08.75-.17 1.45z"/></svg>
 </a>
 
 <script type="module">
@@ -623,9 +468,8 @@
   // IntersectionObserver compartido para todo el sitio -- liviano a
   // propósito (solo opacity/transform, sin librerías de terceros) para no
   // afectar el rendimiento en mobile. Respeta prefers-reduced-motion. Esto
-  // es puramente visual: no toca qué datos se piden a Supabase ni cómo se
-  // procesan, solo observa elementos que YA fueron insertados en el DOM
-  // (por las funciones de hidratación, sin modificarlas).
+  // es puramente visual: solo observa elementos que YA fueron insertados en
+  // el DOM (por las funciones de hidratación).
   const prefiereMenosMovimiento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const revealObserver = prefiereMenosMovimiento
     ? null
@@ -649,8 +493,16 @@
     });
   }
 
-  // Elementos estáticos (ya existen en el HTML al cargar la página).
   observarReveal(document.querySelectorAll('.reveal'));
+
+  // --- Año del copyright.
+  const anio = document.getElementById('anioActual');
+  if (anio) anio.textContent = String(new Date().getFullYear());
+
+  // --- Galería: botones anterior/siguiente sobre el carrusel real.
+  const gTrack = document.getElementById('gTrack');
+  document.getElementById('gallery-prev')?.addEventListener('click', () => gTrack?.scrollBy({ left: -300, behavior: 'smooth' }));
+  document.getElementById('gallery-next')?.addEventListener('click', () => gTrack?.scrollBy({ left: 300, behavior: 'smooth' }));
 
   // --- Banner de anuncios: oculto por defecto, solo se muestra si hay uno
   // activo con mensaje. Cualquier error de red/consulta lo deja oculto sin
@@ -681,7 +533,20 @@
 
   // --- WhatsApp / Instagram: si la consulta funciona, sobreescribe los
   // links/textos ya presentes en el HTML (que quedan como fallback estático
-  // de producción si esto falla).
+  // de producción si esto falla). Los links de WhatsApp con mensaje
+  // prearmado (data-wa-msg) conservan su ?text= -- solo cambia el número.
+  const WA_NUMERO_FALLBACK = '5492617139662';
+  let waNumero = WA_NUMERO_FALLBACK;
+
+  function urlWhatsApp(mensaje) {
+    const base = `https://wa.me/${waNumero}`;
+    return mensaje ? `${base}?text=${encodeURIComponent(mensaje)}` : base;
+  }
+
+  function aplicarLinksWhatsApp(raiz = document) {
+    raiz.querySelectorAll('[data-wa-link]').forEach((el) => { el.href = urlWhatsApp(el.dataset.waMsg); });
+  }
+
   async function hidratarRedes() {
     try {
       const { data, error } = await supabase
@@ -693,8 +558,8 @@
 
       const numero = data.whatsapp_numero?.trim();
       if (numero) {
-        const waUrl = `https://wa.me/${numero}`;
-        document.querySelectorAll('[data-wa-link]').forEach((el) => { el.href = waUrl; });
+        waNumero = numero;
+        aplicarLinksWhatsApp();
         document.querySelectorAll('[data-wa-text]').forEach((el) => { el.textContent = `+${numero}`; });
       }
 
@@ -709,63 +574,58 @@
     }
   }
 
+  // --- Formulario de contacto: arma el mensaje de WhatsApp con nombre,
+  // disciplina y mensaje opcional, y abre WhatsApp con el número vigente.
+  const CONSULTA_GENERAL = 'Consulta General de Planes';
+  const formContacto = document.getElementById('contact-form');
+  formContacto?.addEventListener('submit', (evento) => {
+    evento.preventDefault();
+    const nombre = document.getElementById('client-name').value.trim();
+    const disciplina = document.getElementById('client-discipline').value;
+    const extra = document.getElementById('client-msg').value.trim();
+
+    let texto = `¡Hola GreenFit! Soy ${nombre}. Vi la página web y `;
+    texto += disciplina === CONSULTA_GENERAL
+      ? 'me gustaría consultar por los planes y horarios disponibles.'
+      : `me interesa ${disciplina}.`;
+    if (extra) texto += ` ${extra}`;
+
+    window.open(urlWhatsApp(texto), '_blank', 'noopener,noreferrer');
+  });
+
   // --- Catálogo de disciplinas: ícono conocido por nombre, o uno genérico
   // si no matchea (así una disciplina nueva creada desde el admin, ej.
-  // "Danza", siempre tiene algo para mostrar). Si no hay ninguna activa, o
-  // falla la consulta, se muestra un mensaje en vez de una grilla vacía o rota.
+  // "Danza", siempre tiene algo para mostrar). Los íconos usan currentColor
+  // -- el color lo pone el contenedor (text-primary).
   const ICONOS_POR_NOMBRE = {
-    aparatos: `<svg viewBox="0 0 24 24" fill="none" stroke="#8CE619" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="3.2" r="1.6"/><path d="M12 4.8v8.2M9 21l2.5-8h1l2.5 8"/><path d="M12 6.5L7 2.2M12 6.5l5-4.3"/><path d="M5 1.4v3.6M19 1.4v3.6"/></svg>`,
-    boxeo: `<svg viewBox="0 0 24 24" fill="none" stroke="#8CE619" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="3.2" r="1.6"/><path d="M12 4.8v9.2"/><path d="M12 7l-2.5 2-1 2.5"/><path d="M12 7l4-0.5"/><path d="M12 14l-3 7M12 14l5-2.5v6.5"/><circle cx="16.8" cy="6.2" r="1.8" fill="#8CE619"/></svg>`,
-    kickstrike: `<svg viewBox="0 0 24 24" fill="none" stroke="#8CE619" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="3.2" r="1.6"/><path d="M11 4.8v7.2"/><path d="M11 7l-4 1.5M11 7l3-1.5"/><path d="M11 12l-1.5 9"/><path d="M11 12l6-2 4-4.5"/></svg>`,
-    crossfit: `<svg viewBox="0 0 24 24" fill="none" stroke="#8CE619" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="3.2" r="1.6"/><path d="M12 4.8l1 6.5"/><path d="M13 7.3l-3 1.5-1.5 3"/><path d="M13 7.3l3 1-0.5 3"/><path d="M13 11.3l-3.5 4.2M13 11.3l3 4.7v5"/><path d="M10.2 13a1.8 1.8 0 0 1 3.6 0"/><circle cx="12" cy="15.3" r="2.3"/></svg>`,
+    aparatos: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="3.2" r="1.6"/><path d="M12 4.8v8.2M9 21l2.5-8h1l2.5 8"/><path d="M12 6.5L7 2.2M12 6.5l5-4.3"/><path d="M5 1.4v3.6M19 1.4v3.6"/></svg>`,
+    boxeo: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="3.2" r="1.6"/><path d="M12 4.8v9.2"/><path d="M12 7l-2.5 2-1 2.5"/><path d="M12 7l4-0.5"/><path d="M12 14l-3 7M12 14l5-2.5v6.5"/><circle cx="16.8" cy="6.2" r="1.8" fill="currentColor"/></svg>`,
+    kickstrike: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="3.2" r="1.6"/><path d="M11 4.8v7.2"/><path d="M11 7l-4 1.5M11 7l3-1.5"/><path d="M11 12l-1.5 9"/><path d="M11 12l6-2 4-4.5"/></svg>`,
+    crossfit: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="3.2" r="1.6"/><path d="M12 4.8l1 6.5"/><path d="M13 7.3l-3 1.5-1.5 3"/><path d="M13 7.3l3 1-0.5 3"/><path d="M13 11.3l-3.5 4.2M13 11.3l3 4.7v5"/><path d="M10.2 13a1.8 1.8 0 0 1 3.6 0"/><circle cx="12" cy="15.3" r="2.3"/></svg>`,
   };
   // Sparkle genérico -- a propósito NO es un círculo con línea cruzada (eso
   // se lee como "prohibido/error"), sino algo neutro-positivo para
   // disciplinas nuevas sin ícono propio todavía.
-  const ICONO_GENERICO = `<svg viewBox="0 0 24 24" fill="none" stroke="#8CE619" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg>`;
+  const ICONO_GENERICO = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg>`;
 
-  async function hidratarDisciplinas() {
-    const grid = document.getElementById('disciplineGrid');
-    const vacio = document.getElementById('disciplineEmptyMsg');
-    if (!grid || !vacio) return;
+  const ETIQUETAS_POR_NOMBRE = {
+    aparatos: 'Musculación & Fuerza',
+    boxeo: 'Combate Técnico',
+    crossfit: 'Functional WOD',
+    kickstrike: 'Acondicionamiento',
+  };
 
-    try {
-      const { data, error } = await supabase
-        .from('disciplines')
-        .select('id, name')
-        .eq('is_active', true)
-        .order('name');
-      if (error) throw error;
+  // Mensaje prearmado del botón "Anotarme" de cada fila de horarios.
+  const MENSAJES_ANOTARME = {
+    aparatos: 'Quiero info para anotarme en Aparatos',
+    boxeo: 'Quiero info para clase de Boxeo',
+    crossfit: 'Quiero sumarme a CrossFit',
+    kickstrike: 'Quiero info de KickStrike',
+  };
 
-      const disciplinas = data ?? [];
-      if (disciplinas.length === 0) {
-        grid.innerHTML = '';
-        vacio.style.display = 'block';
-        return;
-      }
-
-      grid.innerHTML = disciplinas
-        .map((d) => {
-          const icono = ICONOS_POR_NOMBRE[normalizar(d.name)] ?? ICONO_GENERICO;
-          return `<div class="discipline-card reveal">${icono}<b>${escapeHtml(d.name)}</b></div>`;
-        })
-        .join('');
-      vacio.style.display = 'none';
-      observarReveal(grid.querySelectorAll('.reveal'));
-    } catch (err) {
-      console.warn('[GreenFit] No se pudo cargar el catálogo de disciplinas:', err);
-      grid.innerHTML = '';
-      vacio.style.display = 'block';
-    }
-  }
-
-  // --- Horarios ("Elegí tu ritmo"): une TODO el catálogo de `disciplines`
-  // (sin filtrar por is_active -- a propósito, ver el comentario dentro de
-  // hidratarHorarios) con sus `classes` reales. Cada bloque de horario
-  // distinto (mismo start/end) agrupa los días en los que se repite -- así
-  // "CrossFit" con 3 turnos distintos muestra 3 líneas en vez de mezclarlas.
   const DIAS_LARGOS = { 0: 'Dom', 1: 'Lun', 2: 'Mar', 3: 'Mié', 4: 'Jue', 5: 'Vie', 6: 'Sáb' };
   const ORDEN_SEMANA = [1, 2, 3, 4, 5, 6, 0]; // arranca en lunes, como el resto del sitio
+  const DIAS_APARATOS = [1, 2, 3, 4, 5, 6]; // lunes a sábado (domingo cerrado)
 
   function formatearHora(t) {
     return (t ?? '').slice(0, 5);
@@ -798,11 +658,11 @@
   // pase de acceso libre eso podía terminar mostrando una franja mal
   // cargada o incompleta (ej. "08:00 a 00:00 hs" si a una fila le faltaba
   // el horario real de cierre). El horario de apertura del gimnasio es un
-  // dato fijo del negocio, no algo que varíe clase a clase -- se hardcodea
-  // acá en vez de depender de lo que haya (o no) en `classes`.
+  // dato fijo del negocio -- se hardcodea acá en vez de depender de lo que
+  // haya (o no) en `classes`.
   const HORARIO_ESTATICO_APARATOS = `
-    <div>Lunes a Viernes <span style="color:var(--grey-text); font-weight:400;">— 08:00 a 12:00 hs | 15:00 a 22:00 hs</span></div>
-    <div style="margin-top:6px;">Sábados <span style="color:var(--grey-text); font-weight:400;">— 10:00 a 13:00 hs</span></div>
+    <div>Lunes a Viernes <span class="text-primary">— 08:00 a 12:00 hs | 15:00 a 22:00 hs</span></div>
+    <div class="mt-1.5 font-body-sm text-body-sm text-on-surface-variant">Sábados <span class="text-on-surface">— 10:00 a 13:00 hs</span></div>
   `;
 
   function agruparPorBloqueHorario(clases) {
@@ -816,125 +676,211 @@
     return [...bloques.values()].sort((a, b) => (a.start ?? '').localeCompare(b.start ?? ''));
   }
 
-  async function hidratarHorarios() {
+  function diasDeDisciplina(d, clasesDeEsta) {
+    const esAparatos = normalizar(d.name) === 'aparatos';
+    const diasUnion = new Set();
+    if (esAparatos) {
+      for (const dia of DIAS_APARATOS) diasUnion.add(dia);
+    } else if (clasesDeEsta && clasesDeEsta.length > 0) {
+      for (const c of clasesDeEsta) for (const dia of c.days_of_week ?? []) diasUnion.add(dia);
+    } else {
+      // Pase libre: sin restricción de día, "todos los días".
+      for (const dia of ORDEN_SEMANA) diasUnion.add(dia);
+    }
+    return diasUnion;
+  }
+
+  // "Todo bajo un mismo techo": solo disciplinas is_active=true.
+  function renderGrilla(disciplinasActivas, clasesPorDisciplina) {
+    const grid = document.getElementById('disciplineGrid');
+    const vacio = document.getElementById('disciplineEmptyMsg');
+    const contador = document.getElementById('disciplineCount');
+    if (!grid || !vacio) return;
+
+    if (disciplinasActivas.length === 0) {
+      grid.innerHTML = '';
+      vacio.style.display = 'block';
+      return;
+    }
+
+    grid.innerHTML = disciplinasActivas
+      .map((d) => {
+        const clave = normalizar(d.name);
+        const icono = ICONOS_POR_NOMBRE[clave] ?? ICONO_GENERICO;
+        const etiqueta = ETIQUETAS_POR_NOMBRE[clave];
+        const clasesDeEsta = clasesPorDisciplina?.get(d.id);
+        const dias = clasesPorDisciplina
+          ? (clasesDeEsta?.length > 0 || clave === 'aparatos' ? formatearDias(diasDeDisciplina(d, clasesDeEsta)) : 'Pase libre')
+          : '';
+        return `
+          <div class="reveal">
+            <div class="group relative h-full rounded bg-surface-container-low hover:bg-surface-container p-space-lg transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-lg hover:shadow-[0_0_24px_-4px_rgba(132,204,22,0.25)]">
+              <div class="w-full">
+                <div class="w-14 h-14 rounded-full bg-surface-container-highest flex items-center justify-center text-primary mb-space-lg group-hover:scale-110 transition-transform [&_svg]:w-7 [&_svg]:h-7">${icono}</div>
+                ${etiqueta ? `<span class="font-label-caps text-label-caps uppercase text-primary tracking-widest block mb-1">${escapeHtml(etiqueta)}</span>` : ''}
+                <h3 class="font-headline-md text-headline-md uppercase text-on-surface mb-3 tracking-tight">${escapeHtml(d.name)}</h3>
+              </div>
+              ${dias ? `<div class="mt-space-lg pt-space-md text-on-surface"><span class="font-label-pill text-label-pill uppercase text-primary">${escapeHtml(dias)}</span></div>` : ''}
+            </div>
+          </div>`;
+      })
+      .join('');
+    vacio.style.display = 'none';
+    if (contador) contador.textContent = String(disciplinasActivas.length);
+    observarReveal(grid.querySelectorAll('.reveal'));
+  }
+
+  // "Elegí tu ritmo": TODO el catálogo de `disciplines` (sin filtrar por
+  // is_active -- a propósito, ver hidratarCatalogo) con sus `classes` reales.
+  // Cada bloque de horario distinto (mismo start/end) agrupa los días en los
+  // que se repite -- así "CrossFit" con 3 turnos distintos muestra 3 líneas
+  // en vez de mezclarlas.
+  function renderHorarios(disciplinas, clasesPorDisciplina) {
     const lista = document.getElementById('scheduleList');
     const vacio = document.getElementById('scheduleEmptyMsg');
     if (!lista || !vacio) return;
 
-    try {
-      // Sin filtro de is_active a propósito: la Landing tiene que listar
-      // TODAS las disciplinas del catálogo, existan o no clases cargadas y
-      // estén o no "activas" en el Admin (is_active solo controla si se
-      // puede vender/reservar desde ahí y desde la PWA -- acá es
-      // exclusivamente informativo). Únicamente si la disciplina se borra
-      // de verdad de `disciplines` deja de aparecer. show_in_agenda
-      // (switch nuevo del Admin para la Agenda de RESERVAS de la PWA) ni
-      // siquiera se pide acá -- no aplica a esta página.
-      const { data: disciplinas, error: errDisc } = await supabase
-        .from('disciplines')
-        .select('id, name, kind')
-        .order('name');
-      if (errDisc) throw errDisc;
-      if (!disciplinas || disciplinas.length === 0) {
-        lista.innerHTML = '';
-        vacio.style.display = 'block';
-        return;
-      }
-
-      const idsDisciplinas = disciplinas.map((d) => d.id);
-      const { data: clases, error: errClases } = await supabase
-        .from('classes')
-        .select('discipline_id, days_of_week, start_time, end_time')
-        .in('discipline_id', idsDisciplinas);
-      if (errClases) throw errClases;
-
-      const clasesPorDisciplina = new Map();
-      for (const c of clases ?? []) {
-        if (!clasesPorDisciplina.has(c.discipline_id)) clasesPorDisciplina.set(c.discipline_id, []);
-        clasesPorDisciplina.get(c.discipline_id).push(c);
-      }
-
-      const filas = [];
-      for (const d of disciplinas) {
-        const esAparatos = normalizar(d.name) === 'aparatos';
-        const clasesDeEsta = clasesPorDisciplina.get(d.id);
-        const tieneClases = clasesDeEsta && clasesDeEsta.length > 0;
-        // Antes, una disciplina sin clases cargadas (ej: Aparatos, que es
-        // acceso libre sin turnos fijos -- kind='membership') se OMITÍA acá
-        // por completo, quedando invisible en "Elegí tu ritmo" -- ahora
-        // TODA disciplina del catálogo aparece (sin importar is_active): con
-        // sus horarios reales si tiene `classes` cargadas, o con el texto de
-        // Pase Libre si no (ya sea porque es de acceso libre por diseño, o
-        // porque todavía no se le cargó ningún horario desde el Admin).
-        const diasUnion = new Set();
-        if (esAparatos) {
-          // Mismo horario fijo que HORARIO_ESTATICO_APARATOS: de lunes a
-          // sábado (domingo cerrado) -- no depende de `classes` para nada.
-          for (const dia of [1, 2, 3, 4, 5, 6]) diasUnion.add(dia);
-        } else if (tieneClases) {
-          for (const c of clasesDeEsta) for (const dia of c.days_of_week ?? []) diasUnion.add(dia);
-        } else {
-          // Pase libre: sin restricción de día, se muestran los 7 chips
-          // activos ("todos los días").
-          for (const dia of ORDEN_SEMANA) diasUnion.add(dia);
-        }
-
-        const chips = ORDEN_SEMANA.map((idx) => {
-          const label = { 1: 'L', 2: 'Ma', 3: 'Mi', 4: 'J', 5: 'V', 6: 'S', 0: 'D' }[idx];
-          const activo = diasUnion.has(idx) ? ' active' : '';
-          return `<span class="day-chip${activo}">${label}</span>`;
-        }).join('');
-
-        let columnaHorario;
-        if (esAparatos) {
-          columnaHorario = HORARIO_ESTATICO_APARATOS;
-        } else if (tieneClases) {
-          const bloques = agruparPorBloqueHorario(clasesDeEsta);
-          columnaHorario = bloques
-            .map((b, i) => {
-              const rango = b.end ? `${formatearHora(b.start)} a ${formatearHora(b.end)} hs` : `${formatearHora(b.start)} hs`;
-              const estilo = i === 0 ? '' : ' style="margin-top:6px;"';
-              return `<div${estilo}>${formatearDias(b.dias)} <span style="color:var(--grey-text); font-weight:400;">— ${rango}</span></div>`;
-            })
-            .join('');
-        } else {
-          columnaHorario = 'Pase Libre / Horario de Gimnasio';
-        }
-
-        const icono = ICONOS_POR_NOMBRE[normalizar(d.name)] ?? ICONO_GENERICO;
-        filas.push(`
-          <div class="class-row reveal">
-            <div class="class-icon">${icono}</div>
-            <div>
-              <div class="class-name-row">
-                <div class="class-name">${escapeHtml(d.name)}</div>
-              </div>
-              <div class="days-row">${chips}</div>
-            </div>
-            <div class="class-times">${columnaHorario}</div>
-          </div>
-        `);
-      }
-
-      if (filas.length === 0) {
-        lista.innerHTML = '';
-        vacio.style.display = 'block';
-        return;
-      }
-      lista.innerHTML = filas.join('');
-      vacio.style.display = 'none';
-      observarReveal(lista.querySelectorAll('.reveal'));
-    } catch (err) {
-      console.warn('[GreenFit] No se pudo cargar la sección de horarios:', err);
+    if (disciplinas.length === 0) {
       lista.innerHTML = '';
       vacio.style.display = 'block';
+      return;
+    }
+
+    const filas = disciplinas.map((d) => {
+      const clave = normalizar(d.name);
+      const esAparatos = clave === 'aparatos';
+      const clasesDeEsta = clasesPorDisciplina.get(d.id);
+      const tieneClases = clasesDeEsta && clasesDeEsta.length > 0;
+      // TODA disciplina del catálogo aparece (sin importar is_active): con
+      // sus horarios reales si tiene `classes` cargadas, o con el texto de
+      // Pase Libre si no.
+      const diasUnion = diasDeDisciplina(d, clasesDeEsta);
+
+      const chips = ORDEN_SEMANA.map((idx) => {
+        const label = { 1: 'L', 2: 'Ma', 3: 'Mi', 4: 'J', 5: 'V', 6: 'S', 0: 'D' }[idx];
+        const estilo = diasUnion.has(idx)
+          ? 'bg-primary text-on-primary font-bold'
+          : 'bg-surface-container-highest text-on-surface-variant opacity-40';
+        return `<span class="w-6 h-6 rounded font-label-pill text-[10px] flex items-center justify-center ${estilo}">${label}</span>`;
+      }).join('');
+
+      let columnaHorario;
+      if (esAparatos) {
+        columnaHorario = HORARIO_ESTATICO_APARATOS;
+      } else if (tieneClases) {
+        const bloques = agruparPorBloqueHorario(clasesDeEsta);
+        columnaHorario = bloques
+          .map((b, i) => {
+            const rango = b.end ? `${formatearHora(b.start)} a ${formatearHora(b.end)} hs` : `${formatearHora(b.start)} hs`;
+            const espaciado = i === 0 ? '' : ' class="mt-1.5"';
+            return `<div${espaciado}>${formatearDias(b.dias)} <span class="text-primary">— ${rango}</span></div>`;
+          })
+          .join('');
+      } else {
+        columnaHorario = 'Pase Libre / Horario de Gimnasio';
+      }
+
+      const icono = ICONOS_POR_NOMBRE[clave] ?? ICONO_GENERICO;
+      const mensaje = MENSAJES_ANOTARME[clave] ?? `Quiero info sobre ${d.name}`;
+      return `
+        <div class="reveal">
+          <div class="bg-surface-container-low rounded p-space-lg flex flex-col lg:flex-row lg:items-center justify-between gap-space-md hover:bg-surface-container transition-colors shadow">
+            <div class="flex items-center gap-space-md">
+              <div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-primary shrink-0 [&_svg]:w-6 [&_svg]:h-6">${icono}</div>
+              <div>
+                <h3 class="font-headline-sm text-headline-sm uppercase text-on-surface">${escapeHtml(d.name)}</h3>
+                <div class="flex items-center gap-1.5 mt-2">${chips}</div>
+              </div>
+            </div>
+            <div class="flex flex-col sm:flex-row sm:items-center gap-space-lg lg:text-right">
+              <div class="font-headline-sm text-headline-sm text-on-surface">${columnaHorario}</div>
+              <a class="px-space-md py-2 rounded-full bg-surface-container-high hover:bg-primary hover:text-on-primary text-on-surface font-label-caps text-label-caps uppercase transition-colors shrink-0 text-center" data-wa-link data-wa-msg="${escapeHtml(mensaje)}" href="${escapeHtml(urlWhatsApp(mensaje))}" target="_blank" rel="noopener noreferrer">Anotarme</a>
+            </div>
+          </div>
+        </div>`;
+    });
+
+    lista.innerHTML = filas.join('');
+    vacio.style.display = 'none';
+    observarReveal(lista.querySelectorAll('.reveal'));
+  }
+
+  // Opciones del select del formulario: las disciplinas activas del catálogo
+  // (si la consulta falla quedan las 4 estáticas del HTML).
+  function renderOpcionesFormulario(disciplinasActivas) {
+    const select = document.getElementById('client-discipline');
+    if (!select || disciplinasActivas.length === 0) return;
+    select.innerHTML = [CONSULTA_GENERAL, ...disciplinasActivas.map((d) => d.name)]
+      .map((nombre) => `<option value="${escapeHtml(nombre)}">${escapeHtml(nombre)}</option>`)
+      .join('');
+  }
+
+  async function hidratarCatalogo() {
+    const grid = document.getElementById('disciplineGrid');
+    const vacioGrilla = document.getElementById('disciplineEmptyMsg');
+    const lista = document.getElementById('scheduleList');
+    const vacioHorarios = document.getElementById('scheduleEmptyMsg');
+    if (!grid || !vacioGrilla || !lista || !vacioHorarios) return;
+
+    let disciplinas;
+    try {
+      // Sin filtro de is_active a propósito: la Landing tiene que listar
+      // TODAS las disciplinas del catálogo en "Elegí tu ritmo", existan o no
+      // clases cargadas y estén o no "activas" en el Admin (is_active solo
+      // controla si se puede vender/reservar desde ahí y desde la PWA -- acá
+      // es exclusivamente informativo). Únicamente si la disciplina se borra
+      // de verdad de `disciplines` deja de aparecer. "Todo bajo un mismo
+      // techo" sí filtra por is_active=true (se hace del lado del cliente).
+      // show_in_agenda (switch del Admin para la Agenda de RESERVAS de la
+      // PWA) ni siquiera se pide acá -- no aplica a esta página.
+      const { data, error } = await supabase
+        .from('disciplines')
+        .select('id, name, kind, is_active')
+        .order('name');
+      if (error) throw error;
+      disciplinas = data ?? [];
+    } catch (err) {
+      console.warn('[GreenFit] No se pudo cargar el catálogo de disciplinas:', err);
+      grid.innerHTML = '';
+      vacioGrilla.style.display = 'block';
+      lista.innerHTML = '';
+      vacioHorarios.style.display = 'block';
+      return;
+    }
+
+    const activas = disciplinas.filter((d) => d.is_active === true);
+    renderOpcionesFormulario(activas);
+
+    let clasesPorDisciplina = null;
+    try {
+      if (disciplinas.length > 0) {
+        const { data: clases, error } = await supabase
+          .from('classes')
+          .select('discipline_id, days_of_week, start_time, end_time')
+          .in('discipline_id', disciplinas.map((d) => d.id));
+        if (error) throw error;
+        clasesPorDisciplina = new Map();
+        for (const c of clases ?? []) {
+          if (!clasesPorDisciplina.has(c.discipline_id)) clasesPorDisciplina.set(c.discipline_id, []);
+          clasesPorDisciplina.get(c.discipline_id).push(c);
+        }
+      }
+    } catch (err) {
+      console.warn('[GreenFit] No se pudo cargar la sección de horarios:', err);
+    }
+
+    renderGrilla(activas, clasesPorDisciplina);
+    if (clasesPorDisciplina || disciplinas.length === 0) {
+      renderHorarios(disciplinas, clasesPorDisciplina ?? new Map());
+    } else {
+      lista.innerHTML = '';
+      vacioHorarios.style.display = 'block';
     }
   }
 
   hidratarBanner();
   hidratarRedes();
-  hidratarHorarios();
-  hidratarDisciplinas();
+  hidratarCatalogo();
 </script>
 
 </body>
