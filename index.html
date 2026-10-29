@@ -865,7 +865,8 @@
         const { data: clases, error } = await supabase
           .from('classes')
           .select('discipline_id, days_of_week, start_time, end_time')
-          .in('discipline_id', disciplinas.map((d) => d.id));
+          .in('discipline_id', disciplinas.map((d) => d.id))
+          .is('fecha_unica', null);
         if (error) throw error;
         clasesPorDisciplina = new Map();
         for (const c of clases ?? []) {
